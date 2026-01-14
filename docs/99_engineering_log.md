@@ -84,17 +84,21 @@ This file is not intended as formal project documentation or marketing material.
 
 ---
 
-## Phase 5 – Data Warehouse Preparation (Planned)
+## Phase 5 – Data Warehouse Setup
 
 ### BigQuery Structure
-- Datasets planned:
+- Datasets created:
   - `olist_raw` for structured raw ingestion
-  - `olist_analytics` for staging, marts, and analytics-ready models
-- BigQuery datasets will use EU-compatible locations for consistency with storage and governance requirements.
+  - `olist_analytics` for dbt-managed staging and analytics-ready marts
+- Both datasets are deployed in the EU multi-region to align with data residency and governance requirements.
+
+### IAM and Access Control
+- Dataset-level IAM permissions applied to grant the runtime Service Account write access.
+- Project-level permissions were intentionally kept minimal to enforce least privilege.
 
 ### Notes
 - Separating raw and analytics datasets supports clearer data lifecycle management.
-- Dataset-level IAM will be preferred over project-level permissions.
+- Dataset-level IAM reduces blast radius compared to project-wide permissions.
 
 ---
 
@@ -126,9 +130,8 @@ This file is not intended as formal project documentation or marketing material.
 
 ## Next Planned Steps
 
-- Create and configure BigQuery datasets (`olist_raw`, `olist_analytics`)
-- Apply dataset-level IAM permissions
-- Provision Compute Engine VM with Service Account attached
+- Provision Compute Engine VM with the Service Account attached
 - Install Docker and Docker Compose
 - Deploy Airflow and dbt runtime environments
-- Begin batch ingestion and incremental pipeline implementation
+- Configure batch ingestion pipelines
+- Implement incremental loading and transformation logic
