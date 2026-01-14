@@ -5,13 +5,13 @@ This document describes the high-level architecture of the project and how data 
 The platform is designed to simulate a production-like batch analytics environment for an e-commerce domain.
 
 ## High-Level Components
-- **Source (Batch files):** Olist e-commerce dataset, originally published on Kaggle and treated as periodic batch CSV deliveries
+- **Source (Batch files):** Olist e-commerce dataset, originally published on Kaggle and treated as periodic batch CSV deliveries.
 - **Storage / Landing Zone:** Google Cloud Storage (GCS) acting as the platform’s data lake and landing zone.
   Raw batch files are stored in an append-only layout using uniform access control.
-- **Orchestration:** Apache Airflow running on a Compute Engine VM (Docker Compose)
-- **Warehouse:** BigQuery for raw storage and analytics-ready datasets
-- **Transformations & Modeling:** dbt for staging and marts (silver/gold)
-- **Consumption:** Looker Studio dashboards built on top of curated BigQuery tables
+- **Orchestration:** Apache Airflow running on a Compute Engine VM (Docker Compose).
+- **Warehouse:** BigQuery with separate datasets for raw ingestion (`olist_raw`) and analytics modeling (`olist_analytics`).
+- **Transformations & Modeling:** dbt for staging and marts (silver/gold).
+- **Consumption:** Looker Studio dashboards built on top of curated BigQuery tables.
 
 ## Region and Data Residency
 All resources are deployed in **europe-west1 (Belgium)**, with **BigQuery datasets using EU-compatible locations**.
@@ -88,6 +88,8 @@ Execution logs and basic runtime metrics are used to ensure traceability and sup
 Authentication is done via:
 - a dedicated GCP Service Account attached to the Compute Engine VM
 - Application Default Credentials (ADC) from the VM metadata server
+
+Dataset-level IAM is used to grant the runtime Service Account write access to `olist_raw` and `olist_analytics`.
 
 This aligns the project with production-oriented security practices.
 
