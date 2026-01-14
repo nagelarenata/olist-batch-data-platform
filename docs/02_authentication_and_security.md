@@ -30,12 +30,14 @@ By relying on ADC, authentication is ephemeral and bound to the runtime environm
 ## Service Account Design
 A single dedicated Service Account is created for the data platform runtime.
 
+The Service Account used by the platform is named `sa-olist-data-platform`.
+
 **Responsibilities:**
 - Access Google Cloud Storage buckets used by the platform
 - Run BigQuery jobs and access project datasets
 - Authenticate workloads running inside Docker containers on the VM
 
-The Service Account is not reused by other projects or workloads.
+Other projects or workloads do not reuse the Service Account.
 
 ## IAM and Least Privilege
 IAM permissions follow the principle of least privilege.
@@ -45,13 +47,13 @@ Rather than assigning broad project-level roles, permissions are scoped as narro
 ### Planned IAM Roles
 The Service Account is expected to receive:
 - **BigQuery Job User**
-  - Required to run query and load jobs
+  - Required to execute queries and load jobs triggered by Airflow and dbt
 - **BigQuery Data Editor** (dataset-level)
-  - Required to write raw and analytics tables
+  - Required to write and update tables in the raw and analytics datasets
 - **Storage Object Admin** (bucket-level)
-  - Required to read and write batch files and logs
+  - Required to read and write batch files and pipeline logs
 
-Permissions are granted at the dataset or bucket level whenever possible.
+Permissions are granted at the dataset or bucket level whenever possible and may be refined as the platform evolves.
 
 ## Runtime Authentication Flow
 At runtime, authentication works as follows:
