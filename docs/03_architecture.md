@@ -6,7 +6,8 @@ The platform is designed to simulate a production-like batch analytics environme
 
 ## High-Level Components
 - **Source (Batch files):** Olist e-commerce dataset, originally published on Kaggle and treated as periodic batch CSV deliveries
-- **Storage / Landing Zone:** Google Cloud Storage (GCS) as an append-only raw layer
+- **Storage / Landing Zone:** Google Cloud Storage (GCS) acting as the platform’s data lake and landing zone.
+  Raw batch files are stored in an append-only layout using uniform access control.
 - **Orchestration:** Apache Airflow running on a Compute Engine VM (Docker Compose)
 - **Warehouse:** BigQuery for raw storage and analytics-ready datasets
 - **Transformations & Modeling:** dbt for staging and marts (silver/gold)
