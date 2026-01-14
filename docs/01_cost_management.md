@@ -6,12 +6,15 @@ Although credits are available, cost control is treated as a first-class archite
 
 The objective is to prevent unnecessary resource consumption while simulating realistic batch data workloads.
 
-## Budget and Monitoring
-- A project-level budget is configured
-- Alert thresholds are defined to monitor early credit consumption
-- Budget alerts act as a safeguard against accidental cost overruns
+## Budget Configuration
+A project-level budget named **olist-batch-data-platform-budget** is configured with a total amount of USD 50.
 
-These controls ensure visibility into spending throughout the project lifecycle.
+Alert thresholds are defined at:
+- 5% (early usage detection)
+- 20% (cost anomaly detection)
+- 50% (execution stop and review)
+
+These alerts act as guardrails to prevent uncontrolled Free Trial credit consumption.
 
 ## Lightweight Infrastructure
 Infrastructure choices are intentionally conservative:
