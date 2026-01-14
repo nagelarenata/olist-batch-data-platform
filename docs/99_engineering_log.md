@@ -102,11 +102,15 @@ This file is not intended as formal project documentation or marketing material.
 
 ---
 
-## Phase 6 – Compute and Orchestration (Planned)
+## Phase 6 – Compute and Orchestration
 
 ### Compute Environment
-- A Compute Engine VM will be provisioned with the Service Account attached.
-- The VM will serve as the runtime environment for Airflow and dbt using Docker Compose.
+- Compute Engine VM created using `e2-medium` (2 vCPU, 4 GB RAM).
+- Ubuntu 22.04 LTS selected as the base operating system.
+- 50 GB standard persistent disk allocated for Docker images and logs.
+- Service Account `sa-olist-data-platform` attached to the VM.
+- Authentication handled via Application Default Credentials (ADC).
+- VM configured with ephemeral external IP and accessed via IAP-based SSH.
 
 ### Orchestration and Transformation
 - Apache Airflow will orchestrate batch ingestion and transformation workflows.
