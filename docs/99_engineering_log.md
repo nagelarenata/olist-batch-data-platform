@@ -112,6 +112,10 @@ This file is not intended as formal project documentation or marketing material.
 - Authentication handled via Application Default Credentials (ADC).
 - VM configured with ephemeral external IP and accessed via IAP-based SSH.
 
+### Environment Validation
+Initial SSH access to the Compute Engine VM was validated via IAP.  
+System identity, Ubuntu 22.04 LTS, allocated compute resources, disk configuration, and outbound network connectivity were verified before runtime installation.
+
 ### Orchestration and Transformation
 - Apache Airflow will orchestrate batch ingestion and transformation workflows.
 - dbt will be used for staging, marts, testing, and documentation.
