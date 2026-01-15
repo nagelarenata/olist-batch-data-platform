@@ -134,17 +134,17 @@ The container runtime was validated using a test container (`hello-world`).
 
 ## Phase 7 – Lessons Learned So Far
 
-- Documentation-first design significantly improves architectural clarity.
-- Separating formal documentation from an engineering log helps balance professionalism and memory retention.
-- Incremental, phase-based implementation reduces cognitive load and improves decision quality.
-- Treating a personal project with production discipline increases its long-term value.
+- A documentation-first approach significantly improves architectural clarity and reduces rework during implementation.
+- Separating formal architecture documentation from an engineering log helps balance professionalism with long-term knowledge retention.
+- Implementing the platform in clearly defined phases reduces cognitive load and enables more deliberate technical decisions.
+- Applying production-oriented practices (cost controls, IAM scoping, validation steps) to a personal project increases its technical credibility and long-term value.
 
 ---
 
 ## Next Planned Steps
 
-- Provision Compute Engine VM with the Service Account attached
-- Install Docker and Docker Compose
-- Deploy Airflow and dbt runtime environments
-- Configure batch ingestion pipelines
-- Implement incremental loading and transformation logic
+- Deploy Apache Airflow using Docker Compose
+- Configure Airflow metadata database and core services
+- Set up dbt runtime environment and project structure
+- Implement batch ingestion pipelines from GCS to BigQuery raw tables
+- Develop incremental staging and mart models using dbt
