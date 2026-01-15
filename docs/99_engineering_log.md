@@ -116,6 +116,11 @@ This file is not intended as formal project documentation or marketing material.
 Initial SSH access to the Compute Engine VM was validated via IAP.  
 System identity, Ubuntu 22.04 LTS, allocated compute resources, disk configuration, and outbound network connectivity were verified before runtime installation.
 
+### Runtime Setup
+Docker Engine and Docker Compose plugin were installed using the official Docker repository.  
+Docker was configured to run without sudo privileges.  
+The container runtime was validated using a test container (`hello-world`).
+
 ### Orchestration and Transformation
 - Apache Airflow will orchestrate batch ingestion and transformation workflows.
 - dbt will be used for staging, marts, testing, and documentation.
