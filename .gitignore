@@ -1,0 +1,63 @@
+############################
+# Environment & Secrets
+############################
+.env
+.env.*
+*.env
+
+############################
+# Python
+############################
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+
+############################
+# Airflow
+############################
+airflow/logs/
+airflow/*.db
+airflow/*.log
+airflow/airflow.cfg
+airflow/webserver_config.py
+
+############################
+# dbt
+############################
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+dbt/.user.yml
+
+############################
+# Docker
+############################
+*.log
+docker-compose.override.yml
+
+############################
+# OS / Editor
+############################
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+############################
+# Data (local / sample)
+############################
+data/raw/
+data/processed/
+data/tmp/
+
+############################
+# Terraform / Infra (future-proof)
+############################
+infra/.terraform/
+infra/*.tfstate
+infra/*.tfstate.*
