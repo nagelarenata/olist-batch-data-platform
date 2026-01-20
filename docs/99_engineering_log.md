@@ -116,6 +116,22 @@ This file is not intended as formal project documentation or marketing material.
 Initial SSH access to the Compute Engine VM was validated via IAP.  
 System identity, Ubuntu 22.04 LTS, allocated compute resources, disk configuration, and outbound network connectivity were verified before runtime installation.
 
+### Secure Access Validation (IAP + OS Login)
+Secure SSH access to the Compute Engine VM was established using **Identity-Aware Proxy (IAP)** combined with **OS Login**.
+The following actions were performed:
+- Cloud IAP API was enabled at the project level
+- SSH access was tunneled through IAP, avoiding direct internet exposure
+- OS Login was used to dynamically provision the Linux user `nagelarenata9`
+- No manual SSH keys were created or managed
+
+Access was validated using:
+
+```bash
+gcloud compute ssh nagelarenata9@olist-data-platform-vm \
+  --zone europe-west1-d \
+  --tunnel-through-iap
+```
+
 ### Runtime Setup
 Docker Engine and Docker Compose plugin were installed using the official Docker repository.  
 Docker was configured to run without sudo privileges.  
@@ -143,8 +159,9 @@ The container runtime was validated using a test container (`hello-world`).
 
 ## Next Planned Steps
 
-- Deploy Apache Airflow using Docker Compose
-- Configure Airflow metadata database and core services
+- Finalize Apache Airflow deployment using Docker Compose
+- Bring up Airflow core services (webserver, scheduler)
+- Validate Airflow UI access and basic DAG execution
 - Set up dbt runtime environment and project structure
 - Implement batch ingestion pipelines from GCS to BigQuery raw tables
 - Develop incremental staging and mart models using dbt
