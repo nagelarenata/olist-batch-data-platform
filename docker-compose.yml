@@ -1,0 +1,59 @@
+x-airflow-common: &airflow-common
+  image: ${AIRFLOW_IMAGE_NAME}
+  env_file:
+    - .env
+  volumes:
+    - ./airflow/dags:/opt/airflow/dags
+    - ./airflow/logs:/opt/airflow/logs
+    - ./airflow/plugins:/opt/airflow/plugins
+  user: "${AIRFLOW_UID}:${AIRFLOW_GID}"
+  depends_on:
+    postgres:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    restart: always
+
+  airflow-init:
+    <<: *airflow-common
+    command:
+     - bash
+     - -c
+     - |
+      airflow db migrate &&
+      airflow users create \
+        --username "${AIRFLOW_ADMIN_USER}" \
+        --password "${AIRFLOW_ADMIN_PASSWORD}" \
+        --firstname "${AIRFLOW_ADMIN_FIRSTNAME}" \
+        --lastname "${AIRFLOW_ADMIN_LASTNAME}" \
+        --role Admin \
+        --email "${AIRFLOW_ADMIN_EMAIL}"
+    restart: "no"
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    restart: always
+
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    ports:
+      - "8080:8080"
+    restart: always
+
+volumes:
+  postgres-db-volume:
