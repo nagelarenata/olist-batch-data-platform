@@ -4,19 +4,34 @@
 This document describes the authentication and security approach adopted by the project.
 The goal is to follow production-oriented best practices while keeping the setup compatible with the GCP Free Trial.
 
-Security decisions are documented before infrastructure provisioning to ensure consistency and avoid retrofitting access controls later.
+Security decisions are documented early to ensure consistency and avoid retrofitting access controls later in the implementation lifecycle.
 
 ## Authentication Strategy Overview
-This project uses **Application Default Credentials (ADC)** for authentication.
+This project uses **Application Default Credentials (ADC)** for **all workload authentication** to Google Cloud services.
 
 No service account key files (JSON) are created, stored, or distributed at any point in the project.
 
-Authentication is based on:
+Authentication is split into two clearly defined domains:
+
+- **Workload authentication (GCP services)** → handled via ADC  
+- **Human access to compute (SSH)** → handled via OS-level SSH keys
+
+This separation follows patterns commonly observed in production environments, where machine identity and human access are handled independently.
+
+## Workload Authentication (ADC)
+
+Workload authentication is based on:
+
 - A dedicated Google Cloud Service Account
 - The Service Account being attached directly to the Compute Engine VM
-- Workloads (Airflow, dbt, scripts) authenticating via the GCP metadata server
+- Workloads (Airflow, dbt, batch scripts) authenticating via the GCP metadata server
 
-This approach avoids long-lived secrets and aligns with recommended GCP security practices.
+Google Cloud SDKs and client libraries automatically resolve credentials at runtime without explicit configuration.
+
+This approach:
+- Avoids long-lived secrets
+- Eliminates credential distribution
+- Aligns with recommended GCP security practices
 
 ## Why Not Service Account Keys (JSON)
 Service account key files are intentionally avoided due to the following risks:
@@ -34,10 +49,10 @@ The Service Account used by the platform is named `sa-olist-data-platform`.
 
 **Responsibilities:**
 - Access Google Cloud Storage buckets used by the platform
-- Run BigQuery jobs and access project datasets
+- Run BigQuery load jobs and queries
 - Authenticate workloads running inside Docker containers on the VM
 
-Other projects or workloads do not reuse the Service Account.
+The Service Account is **not reused** by other projects or environments.
 
 ## IAM and Least Privilege
 IAM permissions follow the principle of least privilege.
@@ -62,29 +77,55 @@ At runtime, authentication works as follows:
 3. Docker containers running Airflow and dbt request credentials via ADC
 4. Google Cloud SDKs automatically resolve credentials without configuration files
 
-No credentials are embedded in code, images, or environment variables.
+No credentials are embedded in:
+- source code
+- Docker images
+- environment variables
+- configuration files
+
+## Human Access to Compute (SSH)
+
+Human access to the Compute Engine VM is handled separately from workload authentication.
+
+- SSH access is performed using OS-level SSH keys
+- No GCP service account keys are involved in SSH access
+- The Linux user used for administration is `nagelarenata9`
+
+This approach:
+- Simplifies daily development workflows
+- Avoids coupling infrastructure access with workload identity
+- Keeps authentication responsibilities clearly separated
+
+This project does not currently use Identity-Aware Proxy (IAP) for SSH access, as the focus is on a simpler development workflow for a single-user environment.
 
 ## Validation and Verification
 Authentication can be validated by:
-- Executing a simple BigQuery query from a container
-- Reading or writing a test object to the GCS bucket
+- Executing a simple BigQuery query from within a Docker container
+- Reading or writing a test object to the GCS data lake bucket
 - Verifying the active identity using GCP tooling
 
 These checks confirm that ADC is functioning as expected.
 
 ## Security Scope and Limitations
-This project does not aim to implement:
-- Key rotation policies (keys are not used)
+This project intentionally limits its security scope.
+
+The goal is not to implement a fully hardened or enterprise-grade security model, but rather to document and apply authentication practices commonly used in production environments, within the constraints of a single-project, batch-oriented setup.
+
+The project does not aim to cover:
+
+- Service account key rotation (service account keys are not used)
 - Advanced secret management solutions
 - Organization-wide IAM governance
-- Network-level security controls (e.g., private service access)
+- Network-level security controls such as Private Service Connect or VPC Service Controls
 
-The focus is on secure authentication practices appropriate for a single-project, batch-oriented platform.
+These topics are considered out of scope for the current stage and purpose of the project.
 
 ## Security Summary
-- No long-lived credentials stored or shared
-- Authentication tied to runtime environment
-- Least-privilege IAM roles
-- Clear separation between code and credentials
+The authentication and security design documented here reflects the following intentions:
 
-This setup balances security, simplicity, and compatibility with the project scope.
+- Avoid storing or distributing long-lived credentials
+- Tie workload authentication to the runtime environment
+- Apply IAM permissions using a least-privilege approach
+- Keep a clear separation between workload identity and human access
+
+The focus is on documenting the rationale behind these choices rather than asserting their effectiveness or completeness.
