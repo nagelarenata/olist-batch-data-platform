@@ -2,7 +2,7 @@
 
 This document records the implementation steps, architectural decisions, and lessons learned during the project's development.
 It serves as a personal technical journal to support future reference, knowledge retention, and project replication.
-This file is not intended as formal project documentation or marketing material.
+This file is not intended as formal project documentation.
 
 ---
 
@@ -131,6 +131,16 @@ gcloud compute ssh nagelarenata9@olist-data-platform-vm \
   --zone europe-west1-d \
   --tunnel-through-iap
 ```
+
+### Notes on SSH Access Decisions
+
+During the initial setup, SSH access to the Compute Engine VM was configured using Identity-Aware Proxy (IAP) combined with OS Login.
+
+The intention at that stage was to experiment with an access pattern commonly found in corporate environments, prioritizing controlled access over direct exposure.
+
+As the project evolved and day-to-day development became more frequent, direct SSH access using standard SSH keys was also enabled to simplify local development workflows and editor integration (e.g., VS Code Remote SSH).
+
+Both approaches were tested to better understand their trade-offs in terms of security, usability, and operational overhead within the context of a single-developer project.
 
 ### Runtime Setup
 Docker Engine and Docker Compose plugin were installed using the official Docker repository.  
