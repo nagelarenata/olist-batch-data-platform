@@ -29,23 +29,31 @@ services:
 
   airflow-init:
     <<: *airflow-common
+    depends_on:
+      postgres:
+        condition: service_healthy
     command:
-     - bash
-     - -c
-     - |
-      airflow db migrate &&
-      airflow users create \
-        --username "${AIRFLOW_ADMIN_USER}" \
-        --password "${AIRFLOW_ADMIN_PASSWORD}" \
-        --firstname "${AIRFLOW_ADMIN_FIRSTNAME}" \
-        --lastname "${AIRFLOW_ADMIN_LASTNAME}" \
-        --role Admin \
-        --email "${AIRFLOW_ADMIN_EMAIL}"
+      - bash
+      - -c
+      - |
+        airflow db migrate &&
+        airflow users create \
+          --username "${AIRFLOW_ADMIN_USER}" \
+          --password "${AIRFLOW_ADMIN_PASSWORD}" \
+          --firstname "${AIRFLOW_ADMIN_FIRSTNAME}" \
+          --lastname "${AIRFLOW_ADMIN_LASTNAME}" \
+          --role Admin \
+          --email "${AIRFLOW_ADMIN_EMAIL}"
     restart: "no"
 
   airflow-scheduler:
     <<: *airflow-common
     command: scheduler
+    healthcheck:
+      test: ["CMD-SHELL", "airflow jobs check --job-type SchedulerJob --hostname \"$$(hostname)\""]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     restart: always
 
   airflow-webserver:
@@ -53,6 +61,11 @@ services:
     command: webserver
     ports:
       - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent --show-error http://localhost:8080/health >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     restart: always
 
 volumes:
