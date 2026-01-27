@@ -61,3 +61,5 @@ data/tmp/
 infra/.terraform/
 infra/*.tfstate
 infra/*.tfstate.*
+
+airflow/dags/test*.py
