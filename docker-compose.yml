@@ -2,6 +2,12 @@ x-airflow-common: &airflow-common
   image: ${AIRFLOW_IMAGE_NAME}
   env_file:
     - .env
+  environment:
+    - AIRFLOW__CORE__DAGBAG_IMPORT_TIMEOUT=120
+    - AIRFLOW__CORE__DAG_FILE_PROCESSOR_TIMEOUT=120
+    - AIRFLOW__CORE__DAG_PROCESSOR__DAG_FILE_PROCESSOR_TIMEOUT=120
+    - AIRFLOW__CORE__KILLED_TASK_CLEANUP_TIME=60
+    - AIRFLOW_CONN_GOOGLE_CLOUD_DEFAULT=google-cloud-platform://?extra__google_cloud_platform__auth_type=google_default&extra__google_cloud_platform__project=${GCP_PROJECT_ID}
   volumes:
     - ./airflow/dags:/opt/airflow/dags
     - ./airflow/logs:/opt/airflow/logs
