@@ -14,7 +14,7 @@ No service account key files (JSON) are created, stored, or distributed at any p
 Authentication is split into two clearly defined domains:
 
 - **Workload authentication (GCP services)** → handled via ADC  
-- **Human access to compute (SSH)** → handled via OS-level SSH keys
+- **Human access to compute (SSH)** → handled via IAP + OS Login
 
 This separation follows patterns commonly observed in production environments, where machine identity and human access are handled independently.
 
@@ -59,14 +59,16 @@ IAM permissions follow the principle of least privilege.
 
 Rather than assigning broad project-level roles, permissions are scoped as narrowly as possible.
 
-### Planned IAM Roles
-The Service Account is expected to receive:
+### IAM Roles
+
+The Service Account currently has the following permissions:
+
 - **BigQuery Job User**
   - Required to execute queries and load jobs triggered by Airflow and dbt
 - **BigQuery Data Editor** (dataset-level)
   - Required to write and update tables in the raw and analytics datasets
 - **Storage Object Admin** (bucket-level)
-  - Required to read and write batch files and pipeline logs
+  - Required to read and write batch files and pipeline artifacts
 
 Permissions are granted at the dataset or bucket level whenever possible and may be refined as the platform evolves.
 
@@ -87,16 +89,21 @@ No credentials are embedded in:
 
 Human access to the Compute Engine VM is handled separately from workload authentication.
 
-- SSH access is performed using OS-level SSH keys
-- No GCP service account keys are involved in SSH access
-- The Linux user used for administration is `nagelarenata9`
+Access is performed using **Identity-Aware Proxy (IAP)** combined with **OS Login**:
+
+- SSH connections are tunneled through IAP (`--tunnel-through-iap`)
+- No public SSH access is exposed to the internet
+- The VM does not require a public IP for administrative access
+- OS Login dynamically provisions the Linux user `nagelarenata9`
+- No manual SSH key management is required
 
 This approach:
-- Simplifies daily development workflows
-- Avoids coupling infrastructure access with workload identity
-- Keeps authentication responsibilities clearly separated
+- Avoids exposing SSH ports publicly
+- Centralizes access control via IAM
+- Improves security compared to direct external SSH access
+- Reflects production-oriented access patterns
 
-This project does not currently use Identity-Aware Proxy (IAP) for SSH access, as the focus is on a simpler development workflow for a single-user environment.
+This setup prioritizes secure administrative access while remaining practical for a single-developer environment.
 
 ## Validation and Verification
 Authentication can be validated by:
