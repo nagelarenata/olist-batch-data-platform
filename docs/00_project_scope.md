@@ -11,9 +11,13 @@ The primary goal of this project is to demonstrate data engineering best practic
 - Dataset is treated as periodic batch deliveries, simulating an e-commerce data extraction process
 
 ## Load Strategy
-- Batch-oriented ingestion
-- Append-only raw layer
-- Raw data versioned by ingestion date (`dt=YYYY-MM-DD`)
+- Batch-oriented ingestion orchestrated by Apache Airflow
+- Source files are stored in Google Cloud Storage using date-partitioned paths:
+  - `gs://<bucket>/olist/raw/dt=YYYY-MM-DD/<table>.csv`
+- Data is first loaded into a transient BigQuery dataset (`olist_raw_tmp`)
+- Raw tables are populated in the `olist_raw` dataset
+- Raw layer is append-only and partitioned by `load_date`
+- Raw data is versioned by ingestion date (`dt=YYYY-MM-DD`)
 - No in-place updates to raw data
 
 ## Incremental Strategy
@@ -26,13 +30,24 @@ This project adopts an ingestion-date–based incremental strategy:
 
 This approach prioritizes auditability, simplicity, and reproducibility over change data capture (CDC).
 
+## Raw Ingestion Metadata
+
+Each raw table includes technical metadata to support lineage, auditability, and reproducibility:
+
+- `load_date` – batch ingestion date (partition column)
+- `ingestion_ts` – timestamp when the load was executed
+- `source_file` – original file name
+- `source_uri` – full GCS path of the ingested file
+
+These fields enable batch traceability and allow safe reprocessing through partition-level idempotency.
+
 ## Architecture Decisions
 - Cloud Provider: Google Cloud Platform (GCP)
 - Region: europe-west1 (Belgium)
 - Storage Layer: Google Cloud Storage (GCS)
 - Orchestration: Apache Airflow
 - Transformation and Modeling: dbt
-- Data Warehouse: BigQuery
+- Data Warehouse: BigQuery (datasets: olist_raw_tmp, olist_raw, olist_analytics)
 - Runtime Environment: Compute Engine VM with Docker Compose
 
 ## Security and Authentication

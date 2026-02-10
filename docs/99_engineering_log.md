@@ -152,6 +152,32 @@ The container runtime was validated using a test container (`hello-world`).
 - dbt will be used for staging, marts, testing, and documentation.
 - Incremental processing will be based on ingestion date rather than CDC.
 
+### Airflow Deployment and Pipeline Execution
+
+Apache Airflow was deployed using Docker Compose, running the following core services:
+- Webserver
+- Scheduler
+- Metadata database (PostgreSQL)
+
+The Airflow UI was successfully accessed via port forwarding.
+
+A batch ingestion DAG (`01_olist_raw_ingestion_once`) was implemented and executed end-to-end with the following behavior:
+- Validation of batch presence in GCS
+- Load of CSV files into BigQuery temporary tables
+- Idempotent load into partitioned raw tables (`olist_raw`)
+- Ingestion metadata added:
+  - load_date
+  - ingestion_ts
+  - source_file
+  - source_uri
+
+To address memory constraints of the `e2-medium` VM, execution parallelism was reduced:
+- DAG-level limits (`max_active_tasks=1`)
+- Dedicated Airflow pool for BigQuery jobs (`bigquery_serial`)
+- Sequential execution of table loads
+
+The pipeline execution completed successfully and raw data was fully populated in BigQuery.
+
 ### Notes
 - Airflow is intentionally used as an orchestrator only.
 - Heavy transformations are delegated to BigQuery via dbt.
@@ -164,14 +190,16 @@ The container runtime was validated using a test container (`hello-world`).
 - Separating formal architecture documentation from an engineering log helps balance professionalism with long-term knowledge retention.
 - Implementing the platform in clearly defined phases reduces cognitive load and enables more deliberate technical decisions.
 - Applying production-oriented practices (cost controls, IAM scoping, validation steps) to a personal project increases its technical credibility and long-term value.
+- Running Apache Airflow on a small Compute Engine instance (e2-medium) exposed memory limitations during parallel task execution. Multiple concurrent BigQuery jobs and Airflow processes triggered Out-Of-Memory (OOM) events and container restarts. The issue was mitigated by reducing orchestration parallelism, introducing a dedicated Airflow pool for BigQuery jobs, and enforcing sequential execution at the DAG level. This reinforced the importance of aligning orchestration concurrency with available infrastructure resources.
 
 ---
 
 ## Next Planned Steps
 
-- Finalize Apache Airflow deployment using Docker Compose
-- Bring up Airflow core services (webserver, scheduler)
-- Validate Airflow UI access and basic DAG execution
 - Set up dbt runtime environment and project structure
-- Implement batch ingestion pipelines from GCS to BigQuery raw tables
-- Develop incremental staging and mart models using dbt
+- Implement staging models (silver layer)
+- Develop dimensional and aggregated models (gold layer)
+- Implement data quality tests using dbt
+- Generate and publish dbt documentation
+- Optimize BigQuery tables (partitioning and clustering where applicable)
+- Implement basic monitoring for pipeline execution and failures
