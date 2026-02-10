@@ -36,10 +36,11 @@ BigQuery datasets are created using **EU-compatible locations**, ensuring consis
 
 ### 2. Ingestion and Raw Loading (Airflow)
 - Apache Airflow orchestrates ingestion and loads each batch into BigQuery raw tables in the `olist_raw` dataset.
-- Each raw table is partitioned by `load_date` and includes basic ingestion metadata:
-  - `load_date` (DATE)
-  - `ingestion_ts` (TIMESTAMP)
-  - `source_file` (STRING)
+Each raw table is partitioned by `load_date` and includes ingestion metadata:
+- load_date (DATE)
+- ingestion_ts (TIMESTAMP)
+- source_file (STRING)
+- source_uri (STRING)
  
 ### 3. Transformations (dbt)
 - dbt reads from BigQuery raw tables and builds downstream models:
@@ -79,8 +80,8 @@ BigQuery datasets are created using **EU-compatible locations**, ensuring consis
 ## Incremental Strategy
 Incremental processing is based on ingestion date rather than source update timestamps.
 
-- Raw ingestion is append-only
-- Each batch is associated with a `load_date`
+- Raw ingestion is idempotent at the partition level
+- Each batch replaces its corresponding `load_date` partition if reprocessed
 - dbt models process only newly ingested partitions using logic equivalent to:
   - `load_date > max(load_date)` from the target model
 
@@ -91,13 +92,29 @@ This strategy is chosen for simplicity and traceability.
 
 ## Orchestration Strategy (Airflow)
 Airflow is responsible for:
-- defining batch execution windows
+- defining and controlling batch execution windows (manual trigger in the current phase)
 - orchestrating dependencies (ingest → raw load → dbt run → dbt test)
 - retry behavior and basic failure handling
 - execution logging for traceability and debugging
 
 Airflow is used strictly as an orchestrator; transformations are executed in BigQuery via dbt.
 
+### Concurrency and Resource Management
+
+Due to the limited memory available on the Compute Engine instance (e2-medium – 4 GB RAM), Airflow execution is configured to minimize resource contention.
+
+The following controls are applied:
+
+* DAG-level concurrency limits:
+
+  * `max_active_runs = 1`
+  * `max_active_tasks = 1`
+* A dedicated Airflow pool (`bigquery_serial`) with a single slot
+* BigQuery load and query operations assigned to this pool
+
+This configuration enforces **sequential execution** of ingestion tasks, preventing memory pressure, container restarts, and out-of-memory (OOM) events.
+
+This design choice prioritizes **pipeline stability and reproducibility** over execution speed, which is appropriate for a small, batch-oriented environment.
 
 ## Authentication Approach 
 Authentication is handled via:
