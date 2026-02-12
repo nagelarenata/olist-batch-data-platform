@@ -26,13 +26,15 @@ GCS → Airflow → BigQuery Raw → dbt (Staging/Marts)
 ## Key Features
 
 - Batch ingestion from CSV files stored in GCS
-- Append-only raw layer with ingestion date versioning
+- Historical raw layer versioned by `load_date`
+- Idempotent partition loads (existing partitions are replaced during reprocessing)
 - BigQuery tables partitioned by `load_date`
 - Ingestion metadata added to all records:
   - `load_date`
   - `ingestion_ts`
   - `source_file`
   - `source_uri`
+- Reprocessing safety: each execution replaces the target `load_date` partition, ensuring idempotent behavior and preventing duplicate records
 - Sequential execution using Airflow pools to control resource usage
 - Cost-aware architecture designed for GCP Free Trial
 - Secure authentication using:
