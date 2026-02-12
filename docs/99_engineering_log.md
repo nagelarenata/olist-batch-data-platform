@@ -224,7 +224,7 @@ The following capabilities are operational:
 ### Outcome
 The raw ingestion layer is considered **stable and reproducible**.
 
-Subsequent changes will focus on downstream layers (dbt staging and marts).
+Subsequent changes will focus on downstream layers (dbt staging and marts). 
 
 ---
 
