@@ -19,7 +19,7 @@ The platform is built on Google Cloud Platform and follows a modern batch analyt
 
 Data flows:
 
-GCS → Airflow → BigQuery Raw → dbt (Staging/Marts)
+GCS → Airflow → BigQuery (Raw) → dbt (Silver/Gold)
 
 ---
 
@@ -133,6 +133,8 @@ Verified scope:
 
 If issues occur after this point, they are expected to be related to subsequent work (dbt models, tests, marts, dashboards, etc.).
 
+See docs/baseline-ingestion-v0.md for full reproducibility instructions.
+
 ---
 
 ## Project Status
@@ -158,7 +160,9 @@ Next steps:
 
 Detailed architecture and design decisions are available in:
 
-- `docs/Architecture Overview.md`
-- `docs/Authentication and Security.md`
-- `docs/Cost Management and Controls.md`
-- `docs/Engineering Log.md`
+- `docs/00_project_scope.md`
+- `docs/01_cost_management.md`
+- `docs/02_authentication_and_security.md`
+- `docs/03_architecture.md`
+- `docs/baseline-ingestion-v0.md`
+- `docs/99_engineering_log.md`
