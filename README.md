@@ -166,3 +166,15 @@ Detailed architecture and design decisions are available in:
 - `docs/03_architecture.md`
 - `docs/baseline-ingestion-v0.md`
 - `docs/99_engineering_log.md`
+
+---
+
+## Current Phase
+
+Raw ingestion layer completed and stabilized.
+
+Future development will focus on:
+- dbt staging models (Silver)
+- Analytical marts (Gold)
+- Data quality tests
+- Looker Studio dashboards

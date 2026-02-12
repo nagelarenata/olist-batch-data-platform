@@ -110,7 +110,7 @@ This file is not intended as formal project documentation.
 - 50 GB standard persistent disk allocated for Docker images and logs.
 - Service Account `sa-olist-data-platform` attached to the VM.
 - Authentication handled via Application Default Credentials (ADC).
-- VM configured with ephemeral external IP and accessed via IAP-based SSH.
+- VM accessed via IAP-based SSH (no public SSH exposure).
 
 ### Environment Validation
 Initial SSH access to the Compute Engine VM was validated via IAP.  
@@ -176,7 +176,7 @@ To address memory constraints of the `e2-medium` VM, execution parallelism was r
 - Dedicated Airflow pool for BigQuery jobs (`bigquery_serial`)
 - Sequential execution of table loads
 
-The pipeline execution completed successfully and raw data was fully populated in BigQuery.
+The pipeline execution completed successfully and raw datasets were fully populated in BigQuery.
 
 ### Notes
 - Airflow is intentionally used as an orchestrator only.
@@ -194,6 +194,40 @@ The pipeline execution completed successfully and raw data was fully populated i
 
 ---
 
+## Phase 8 – Raw Ingestion Baseline Completed
+
+### Implementation Status
+The ingestion baseline was executed as a one-shot load using a fixed ingestion date (`load_date = 2018-10-01`) to ensure reproducibility and consistent validation.
+The raw ingestion layer has been fully implemented and validated.
+
+The following capabilities are operational:
+
+- End-to-end batch ingestion from GCS to BigQuery
+- Raw tables partitioned by `load_date`
+- Ingestion metadata added:
+  - load_date
+  - ingestion_ts
+  - source_file
+  - source_uri
+- Idempotent partition loads (delete + insert)
+- Sequential execution using:
+  - DAG concurrency limits
+  - Dedicated Airflow pool (`bigquery_serial`)
+- Execution validated through successful DAG runs
+- Operational evidence captured (Airflow, BigQuery, job history)
+
+### Stability Measures
+- Airflow metadata database reset and stabilized
+- Out-of-memory issues mitigated through sequential execution and controlled Airflow concurrency
+- VM resource usage validated under load
+
+### Outcome
+The raw ingestion layer is considered **stable and reproducible**.
+
+Subsequent changes will focus on downstream layers (dbt staging and marts).
+
+---
+
 ## Next Planned Steps
 
 - Set up dbt runtime environment and project structure
@@ -203,3 +237,6 @@ The pipeline execution completed successfully and raw data was fully populated i
 - Generate and publish dbt documentation
 - Optimize BigQuery tables (partitioning and clustering where applicable)
 - Implement basic monitoring for pipeline execution and failures
+
+### Known Limitations:
+- Fixed ingestion date (non-parameterized)
