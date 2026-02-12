@@ -121,6 +121,20 @@ This project was developed under the GCP Free Trial and applies basic FinOps pri
 
 ---
 
+## Reproducibility Baseline (v0)
+
+This repository has a validated baseline for the ingestion layer.
+
+Verified scope:
+- Airflow running on Docker Compose (webserver + scheduler + postgres)
+- One-shot ingestion DAG executed successfully
+- GCS → BigQuery load into `olist_raw` with ingestion metadata
+- Partition-based idempotency (`load_date` partition overwrite)
+
+If issues occur after this point, they are expected to be related to subsequent work (dbt models, tests, marts, dashboards, etc.).
+
+---
+
 ## Project Status
 
 Current implementation:
