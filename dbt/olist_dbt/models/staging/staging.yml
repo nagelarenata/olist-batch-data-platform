@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: stg_orders
-    description: Staging model for orders with timestamp parsing and ingestion lineage
+    description: Staging model for orders with timestamp parsing and ingestion lineage.
 
     tests:
       - dbt_utils.unique_combination_of_columns:
@@ -13,17 +13,17 @@ models:
 
     columns:
       - name: order_id
-        description: Order identifier (unique within each load_date batch)
+        description: Order identifier (unique within each load_date batch).
         tests:
           - not_null
 
       - name: customer_id
-        description: Customer who placed the order
+        description: Customer who placed the order.
         tests:
           - not_null
 
       - name: order_status
-        description: Current status of the order
+        description: Current status of the order.
         tests:
           - accepted_values:
               arguments:
@@ -38,10 +38,95 @@ models:
                   - unavailable
 
       - name: order_purchase_ts
-        description: Timestamp when the order was created
+        description: Timestamp when the order was created.
+        tests:
+          - not_null
+
+      - name: order_purchase_dt
+        description: Order creation date derived from order_purchase_ts.
         tests:
           - not_null
 
       - name: load_date
+        description: Batch partition date used for ingestion lineage and idempotency.
         tests:
           - not_null
+
+      - name: ingestion_ts
+        description: Ingestion timestamp for lineage and debugging.
+        tests:
+          - not_null
+
+      - name: source_file
+        description: Source file name used during ingestion (if available).
+
+      - name: source_uri
+        description: Source file URI/path used during ingestion (if available).
+
+  - name: stg_order_items
+    description: Staging model for order items with numeric casting and ingestion lineage.
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - order_id
+              - order_item_id
+              - load_date
+
+    columns:
+      - name: order_id
+        description: Identifier of the order this item belongs to.
+        tests:
+          - not_null
+
+      - name: order_item_id
+        description: Sequential item number within an order.
+        tests:
+          - not_null
+
+      - name: product_id
+        description: Product identifier.
+        tests:
+          - not_null
+
+      - name: seller_id
+        description: Seller identifier.
+        tests:
+          - not_null
+
+      - name: shipping_limit_ts
+        description: Latest timestamp for the seller to ship the item.
+        tests:
+          - not_null
+
+      - name: shipping_limit_dt
+        description: Shipping limit date derived from shipping_limit_ts.
+        tests:
+          - not_null
+
+      - name: price
+        description: Item price (currency value).
+        tests:
+          - not_null
+
+      - name: freight_value
+        description: Freight/shipping cost for the item.
+        tests:
+          - not_null
+
+      - name: load_date
+        description: Batch partition date used for ingestion lineage and idempotency.
+        tests:
+          - not_null
+
+      - name: ingestion_ts
+        description: Ingestion timestamp for lineage and debugging.
+        tests:
+          - not_null
+
+      - name: source_file
+        description: Source file name used during ingestion (if available).
+
+      - name: source_uri
+        description: Source file URI/path used during ingestion (if available).
