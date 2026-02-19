@@ -24,3 +24,54 @@ models:
         description: Ingestion timestamp used as secondary ordering when multiple records exist for the same load_date
         tests:
           - not_null
+
+  - name: int_order_items__latest
+    description: Current state of each order item based on load_date and ingestion_ts, preserving ingestion metadata for lineage and auditing.
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - order_id
+              - order_item_id
+
+    columns:
+      - name: order_id
+        description: Order identifier.
+        tests:
+          - not_null
+
+      - name: order_item_id
+        description: Sequential item identifier within the order.
+        tests:
+          - not_null
+
+      - name: product_id
+        description: Product identifier.
+        tests:
+          - not_null
+
+      - name: seller_id
+        description: Seller identifier.
+        tests:
+          - not_null
+
+      - name: price
+        description: Item price.
+        tests:
+          - not_null
+
+      - name: freight_value
+        description: Freight cost for the item.
+        tests:
+          - not_null
+
+      - name: load_date
+        description: Batch partition date used to identify the latest record.
+        tests:
+          - not_null
+
+      - name: ingestion_ts
+        description: Ingestion timestamp used as secondary ordering for latest selection.
+        tests:
+          - not_null
