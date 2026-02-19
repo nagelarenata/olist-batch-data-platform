@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: int_orders__latest
+    description: >
+      Latest version of each order record.
+      The model keeps only the most recent state per order_id,
+      using load_date as the primary ordering and ingestion_ts as a secondary tie-breaker.
+      This layer provides a clean current-state view for downstream marts.
+
+    columns:
+      - name: order_id
+        description: Unique identifier of the order representing the current state
+        tests:
+          - not_null
+          - unique
+
+      - name: load_date
+        description: Batch partition date used as primary ordering to identify the latest record per order
+        tests:
+          - not_null
+
+      - name: ingestion_ts
+        description: Ingestion timestamp used as secondary ordering when multiple records exist for the same load_date
+        tests:
+          - not_null
