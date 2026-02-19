@@ -75,3 +75,45 @@ models:
         description: Ingestion timestamp used as secondary ordering for latest selection.
         tests:
           - not_null
+
+  - name: int_customers__latest
+    description: Latest version of each customer record based on load_date and ingestion_ts (current state per customer_id).
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - customer_id
+
+    columns:
+      - name: customer_id
+        description: Customer technical identifier used in transactional tables.
+        tests:
+          - not_null
+
+      - name: customer_unique_id
+        description: Identifier representing the real customer across multiple customer_id records.
+        tests:
+          - not_null
+
+      - name: customer_zip_code_prefix
+        description: ZIP code prefix used for geographic analysis.
+        tests:
+          - not_null
+
+      - name: load_date
+        description: Batch partition date used to determine the latest record.
+        tests:
+          - not_null
+
+      - name: ingestion_ts
+        description: Ingestion timestamp used as secondary ordering for latest selection.
+        tests:
+          - not_null
+
+      - name: source_file
+        description: Source file name used during ingestion (if available).
+
+      - name: source_uri
+        description: Source file URI/path used during ingestion (if available).
+
