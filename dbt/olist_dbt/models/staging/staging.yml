@@ -1,0 +1,45 @@
+version: 2
+
+models:
+  - name: stg_orders
+    description: Staging model for orders with timestamp parsing and ingestion lineage
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - order_id
+            - load_date
+
+    columns:
+      - name: order_id
+        description: Order identifier (unique within each load_date batch)
+        tests:
+          - not_null
+
+      - name: customer_id
+        description: Customer who placed the order
+        tests:
+          - not_null
+
+      - name: order_status
+        description: Current status of the order
+        tests:
+          - accepted_values:
+              values:
+                - created
+                - approved
+                - invoiced
+                - processing
+                - shipped
+                - delivered
+                - canceled
+                - unavailable
+
+      - name: order_purchase_ts
+        description: Timestamp when the order was created
+        tests:
+          - not_null
+
+      - name: load_date
+        tests:
+          - not_null
