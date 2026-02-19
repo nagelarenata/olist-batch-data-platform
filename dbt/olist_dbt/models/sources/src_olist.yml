@@ -1,0 +1,19 @@
+version: 2
+
+sources:
+  - name: olist_raw
+    database: "{{ target.project }}"
+    schema: olist_raw
+    config:
+      loaded_at_field: ingestion_ts
+
+    tables:
+      - name: customers
+      - name: geolocation
+      - name: order_items
+      - name: order_payments
+      - name: order_reviews
+      - name: orders
+      - name: product_category_name_translation
+      - name: products
+      - name: sellers
