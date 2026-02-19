@@ -6,9 +6,10 @@ models:
 
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - order_id
-            - load_date
+          arguments:
+            combination_of_columns:
+              - order_id
+              - load_date
 
     columns:
       - name: order_id
@@ -25,15 +26,16 @@ models:
         description: Current status of the order
         tests:
           - accepted_values:
-              values:
-                - created
-                - approved
-                - invoiced
-                - processing
-                - shipped
-                - delivered
-                - canceled
-                - unavailable
+              arguments:
+                values:
+                  - created
+                  - approved
+                  - invoiced
+                  - processing
+                  - shipped
+                  - delivered
+                  - canceled
+                  - unavailable
 
       - name: order_purchase_ts
         description: Timestamp when the order was created
