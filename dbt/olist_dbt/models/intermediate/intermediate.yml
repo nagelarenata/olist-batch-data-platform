@@ -172,3 +172,38 @@ models:
 
       - name: source_uri
         description: Source file URI/path used during ingestion (if available).
+
+  - name: int_sellers__latest
+    description: Latest version of each seller based on load_date and ingestion_ts (current operational state).
+
+    columns:
+      - name: seller_id
+        description: Seller identifier (current state).
+        tests:
+          - not_null
+          - unique
+
+      - name: seller_zip_code_prefix
+        description: ZIP code prefix used for geographic analysis.
+
+      - name: seller_city
+        description: Seller city (normalized in staging; may be null).
+
+      - name: seller_state
+        description: Seller state (UF) normalized in staging; may be null.
+
+      - name: load_date
+        description: Batch partition date used to identify the latest record.
+        tests:
+          - not_null
+
+      - name: ingestion_ts
+        description: Ingestion timestamp used as secondary ordering for latest selection.
+        tests:
+          - not_null
+
+      - name: source_file
+        description: Source file name used during ingestion (if available).
+
+      - name: source_uri
+        description: Source file URI/path used during ingestion (if available).
