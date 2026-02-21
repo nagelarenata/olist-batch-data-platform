@@ -178,3 +178,79 @@ models:
 
       - name: source_uri
         description: Source file URI/path used during ingestion (if available).
+
+  - name: stg_products
+    description: Staging model for products with basic normalization and ingestion lineage.
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - product_id
+              - load_date
+
+    columns:
+      - name: product_id
+        description: Product identifier (unique within each load_date batch).
+        tests:
+          - not_null
+
+      - name: product_category_name
+        description: Normalized product category name (lowercase and trimmed).
+
+      - name: product_name_length
+        description: Character length of the product name (as provided by the source).
+
+      - name: product_description_length
+        description: Character length of the product description (as provided by the source).
+
+      - name: product_photos_qty
+        description: Number of product photos available.
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+
+      - name: product_weight_g
+        description: Product weight in grams.
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+
+      - name: product_length_cm
+        description: Product length in centimeters.
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+
+      - name: product_height_cm
+        description: Product height in centimeters.
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+
+      - name: product_width_cm
+        description: Product width in centimeters.
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+
+      - name: load_date
+        description: Batch partition date used for ingestion lineage and idempotency.
+        tests:
+          - not_null
+
+      - name: ingestion_ts
+        description: Ingestion timestamp for lineage and debugging.
+        tests:
+          - not_null
+
+      - name: source_file
+        description: Source file name used during ingestion (if available).
+
+      - name: source_uri
+        description: Source file URI/path used during ingestion (if available).
