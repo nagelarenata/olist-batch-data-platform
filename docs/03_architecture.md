@@ -135,11 +135,46 @@ The platform is designed to operate within Free Trial constraints:
 Cost controls are treated as a practical constraint rather than an architectural objective.
 
 
-## Future Improvements
-Potential future extensions include:
-- partitioning and clustering optimizations in BigQuery marts
-- automated publishing of dbt documentation artifacts
-- more explicit idempotency controls (e.g., batch ledger tables)
-- alternative incremental strategies and CDC simulations
+## Current Implementation Status
 
-These items are intentionally out of scope for the current implementation phase.
+The following components are already implemented and validated:
+
+### Infrastructure
+- Compute Engine VM deployed in europe-west1
+- Airflow running via Docker Compose (webserver, scheduler, metadata database)
+- Authentication via Application Default Credentials (ADC)
+- Dedicated runtime Service Account with least-privilege IAM
+
+### Ingestion Layer
+- Batch ingestion pipeline orchestrated by Airflow
+- Source files stored in GCS using date-partitioned paths
+- Data loaded into BigQuery `olist_raw`
+- Tables partitioned by `load_date`
+- Ingestion metadata added to all records:
+  - load_date
+  - ingestion_ts
+  - source_file
+  - source_uri
+- Partition-level idempotency implemented
+
+### Transformation Layer (dbt)
+- Staging models (`stg_*`) for:
+  - customers
+  - orders
+  - order_items
+  - products
+  - sellers
+- Current-state views (`int_*__latest`) using:
+  - load_date (primary ordering)
+  - ingestion_ts (tie-breaker)
+- Data quality tests implemented:
+  - not_null
+  - unique / unique combinations
+  - accepted values
+  - relationship integrity
+- `dbt build` execution validated successfully
+
+### Execution Flow
+Current manual execution sequence:
+
+Airflow ingestion → dbt build → dbt tests
