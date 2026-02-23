@@ -228,15 +228,106 @@ Subsequent changes will focus on downstream layers (dbt staging and marts).
 
 ---
 
+## Phase 9 – Transformation Layer Implemented (dbt)
+
+### Environment Setup
+- dbt Core installed and configured on the Compute Engine VM
+- BigQuery adapter configured using Application Default Credentials (ADC)
+- Project structure created following standard layering conventions:
+  - `staging/`
+  - `intermediate/`
+  - `marts/` (planned)
+
+### Staging Layer (Silver)
+
+Staging models were implemented for the main domain entities:
+
+- `stg_customers`
+- `stg_orders`
+- `stg_order_items`
+- `stg_products`
+- `stg_sellers`
+
+Responsibilities:
+- Column renaming and standardization
+- Basic normalization (trim, lower/upper case where applicable)
+- Timestamp parsing and date derivation
+- Preservation of ingestion metadata:
+  - `load_date`
+  - `ingestion_ts`
+  - `source_file`
+  - `source_uri`
+
+Each staging model includes:
+- `not_null` tests on key fields
+- Unique combination tests using `(business_key, load_date)`
+- Domain validation tests (e.g., accepted values, numeric ranges)
+
+### Current-State Layer (Intermediate)
+
+To support analytical consumption without historical duplication, current-state views were created:
+
+- `int_customers__latest`
+- `int_orders__latest`
+- `int_order_items__latest`
+- `int_products__latest`
+- `int_sellers__latest`
+
+Selection logic:
+- Latest record per business key
+- Ordered by:
+  - `load_date` (primary)
+  - `ingestion_ts` (tie-breaker)
+
+This layer provides:
+- Deduplicated entities
+- Simplified joins for downstream marts
+- Clear separation between historical raw data and operational current state
+
+### Data Quality and Integrity
+
+Data quality tests implemented:
+
+- Not-null constraints
+- Unique and unique-combination tests
+- Accepted values (domain validation)
+- Referential integrity using `relationships`:
+  - orders → customers
+  - order_items → orders
+  - order_items → products
+  - order_items → sellers
+
+Test severity for relationship checks configured as `warn` to avoid blocking execution during exploratory phases.
+
+### Execution Validation
+
+The full transformation pipeline was validated using `dbt build`:
+
+Results:
+- 10 models created (staging + intermediate)
+- 62 data tests executed
+- All tests passed successfully
+- No warnings or errors
+
+### Outcome
+
+The Silver and Intermediate layers are considered **implemented and operational**.
+
+The project now supports:
+- End-to-end ingestion
+- Standardized staging
+- Current-state analytical views
+- Automated data quality validation
+
+---
+
 ## Next Planned Steps
 
-- Set up dbt runtime environment and project structure
-- Implement staging models (silver layer)
-- Develop dimensional and aggregated models (gold layer)
-- Implement data quality tests using dbt
-- Generate and publish dbt documentation
-- Optimize BigQuery tables (partitioning and clustering where applicable)
-- Implement basic monitoring for pipeline execution and failures
+- Implement dimensional and aggregated models (Gold layer)
+- Generate and publish dbt documentation (`dbt docs`)
+- Integrate dbt execution into Airflow DAG
+- Create initial Looker Studio dashboards
+- Implement basic pipeline monitoring and alerting
 
 ### Known Limitations:
 - Fixed ingestion date (non-parameterized)
