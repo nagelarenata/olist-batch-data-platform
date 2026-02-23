@@ -1,4 +1,4 @@
-# Olist Batch Data Platform
+# Olist Batch Data Platform (GCP | Airflow | dbt | BigQuery)
 
 A production-like batch data platform that simulates a real-world e-commerce analytics environment using Apache Airflow, BigQuery, and Google Cloud.
 
@@ -14,12 +14,39 @@ The platform is built on Google Cloud Platform and follows a modern batch analyt
 - **Storage:** Google Cloud Storage (raw landing zone)
 - **Orchestration:** Apache Airflow (Docker on Compute Engine)
 - **Data Warehouse:** BigQuery
-- **Transformation:** dbt (planned)
+- **Transformation:** dbt (staging, intermediate and analytical models implemented)
 - **Visualization:** Looker Studio (planned)
 
 Data flows:
 
-GCS → Airflow → BigQuery (Raw) → dbt (Silver/Gold)
+GCS → Airflow → BigQuery Raw → dbt (Staging/Silver → Intermediate → Marts/Gold) → Looker Studio
+
+---
+
+## Data Modeling (dbt)
+
+The transformation layer follows a layered modeling approach:
+
+- **Staging (Silver):** Source-aligned models with data type casting, standardization and ingestion lineage.
+- **Intermediatee:** Current-state models built using load_date and ingestion_ts to resolve latest records.
+- **Marts (Gold):** Business-ready dimensional models designed for analytics and BI consumption.
+- **Data Warehouse:** BigQuery
+- **Transformation:** dbt (staging, intermediate and analytical models implemented)
+- **Visualization:** Looker Studio (planned)
+
+Model structure:
+
+models/
+  staging/
+  intermediate/
+  marts/
+    dimensions/
+    facts/
+
+All models include:
+- Data quality tests (not_null, unique, relationships)
+- Incremental-ready structure
+- Source lineage and operational metadata
 
 ---
 
@@ -41,6 +68,18 @@ GCS → Airflow → BigQuery (Raw) → dbt (Silver/Gold)
   - Service Account attached to VM
   - Application Default Credentials (ADC)
   - IAP + OS Login for SSH access
+
+---
+
+## Data Quality
+
+Data quality is enforced using dbt tests:
+
+- Primary key uniqueness
+- Not-null constraints
+- Referential integrity between facts and dimensions
+- Accepted values and domain validation
+- The current implementation includes 70+ automated data tests executed during each dbt build.
 
 ---
 
@@ -100,6 +139,14 @@ All ingestion jobs are executed by Airflow using the platform Service Account.
 
 ---
 
+### dbt Execution – Staging and Intermediate Layers
+
+Staging and intermediate models were successfully built and validated with data quality tests.
+
+![dbt Build Success](docs/images/dbt_staging_intermediate_build_success.png)
+
+---
+
 ## Cost Management
 
 This project was developed under the GCP Free Trial and applies basic FinOps principles:
@@ -141,18 +188,17 @@ See docs/baseline-ingestion-v0.md for full reproducibility instructions.
 
 Current implementation:
 
-- Airflow deployed via Docker Compose
-- Raw ingestion pipeline implemented and executed successfully
-- Data loaded from GCS to BigQuery
-- Partitioned raw tables with ingestion metadata
-- Cost and security controls in place
+- Raw ingestion pipeline (Airflow)
+- Staging and intermediate dbt models
+- Latest-state resolution using ingestion metadata
+- 70+ automated data quality tests
+- Layered warehouse architecture (Raw → Silver → Gold)
 
 Next steps:
 
-- Implement dbt staging models
-- Build analytical marts
-- Add data quality tests
-- Create Looker Studio dashboards
+- Build dimensional marts (facts and dimensions)
+- Implement incremental materializations
+- Publish Looker Studio dashboards
 
 ---
 
@@ -174,7 +220,5 @@ Detailed architecture and design decisions are available in:
 Raw ingestion layer completed and stabilized.
 
 Future development will focus on:
-- dbt staging models (Silver)
 - Analytical marts (Gold)
-- Data quality tests
 - Looker Studio dashboards
