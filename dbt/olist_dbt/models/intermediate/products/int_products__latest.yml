@@ -1,0 +1,56 @@
+version: 2
+
+models:
+  - name: int_products__latest
+    description: Latest version of each product record based on load_date and ingestion_ts (current state per product_id).
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [product_id]
+
+    columns:
+      - name: product_id
+        description: Product identifier (current state).
+        tests: [not_null]
+
+      - name: product_category_name
+        description: Product category name standardized in staging.
+
+      - name: product_name_length
+        description: Character length of the product name.
+
+      - name: product_description_length
+        description: Character length of the product description.
+
+      - name: product_photos_qty
+        description: Number of product photos available.
+
+      - name: product_weight_g
+        description: Product weight in grams.
+
+      - name: product_length_cm
+        description: Product length in centimeters.
+
+      - name: product_height_cm
+        description: Product height in centimeters.
+
+      - name: product_width_cm
+        description: Product height in centimeters.
+
+      - name: product_width_cm
+        description: Product width in centimeters.
+
+      - name: load_date
+        description: Batch partition date used to determine the latest record.
+        tests: [not_null]
+
+      - name: ingestion_ts
+        description: Ingestion timestamp used as secondary ordering for latest selection.
+        tests: [not_null]
+
+      - name: source_file
+        description: Source file name used during ingestion.
+
+      - name: source_uri
+        description: Source file URI used during ingestion.

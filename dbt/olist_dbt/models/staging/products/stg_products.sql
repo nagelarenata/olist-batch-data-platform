@@ -4,7 +4,9 @@ select
     product_id,
 
     -- product attributes
-    lower(trim(product_category_name)) as product_category_name,
+    nullif(lower(trim(product_category_name)), '') as product_category_name,
+
+    -- source fields contain a known typo ("lenght"); standardized in staging
     product_name_lenght as product_name_length,
     product_description_lenght as product_description_length,
     product_photos_qty,

@@ -1,0 +1,74 @@
+version: 2
+
+models:
+  - name: int_order_items__latest
+    description: Latest version of each order item based on load_date and ingestion_ts (current state per order_id and order_item_id).
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [order_id, order_item_id]
+
+    columns:
+      - name: order_id
+        description: Order identifier.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int_orders__latest')
+                field: order_id
+              config:
+                severity: warn
+
+      - name: order_item_id
+        description: Sequential item identifier within the order.
+        tests: [not_null]
+
+      - name: product_id
+        description: Product identifier.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int_products__latest')
+                field: product_id
+              config:
+                severity: warn
+
+      - name: seller_id
+        description: Seller identifier.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int_sellers__latest')
+                field: seller_id
+              config:
+                severity: warn
+
+      - name: shipping_limit_ts
+        description: Latest timestamp for the seller to ship the item.
+
+      - name: shipping_limit_dt
+        description: Shipping limit date derived from shipping_limit_ts.
+
+      - name: price
+        description: Item price (currency amount).
+
+      - name: freight_value
+        description: Freight/shipping cost for the item.
+
+      - name: load_date
+        description: Batch partition date used to identify the latest record.
+        tests: [not_null]
+
+      - name: ingestion_ts
+        description: Ingestion timestamp used as secondary ordering for latest selection.
+        tests: [not_null]
+
+      - name: source_file
+        description: Source file name used during ingestion.
+
+      - name: source_uri
+        description: Source file URI used during ingestion.

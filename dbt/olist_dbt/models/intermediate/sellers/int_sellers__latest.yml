@@ -1,0 +1,38 @@
+version: 2
+
+models:
+  - name: int_sellers__latest
+    description: Latest version of each seller based on load_date and ingestion_ts (current state per seller_id).
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [seller_id]
+
+    columns:
+      - name: seller_id
+        description: Seller identifier (current state).
+        tests: [not_null]
+
+      - name: seller_zip_code_prefix
+        description: ZIP code prefix used for geographic analysis.
+
+      - name: seller_city
+        description: Seller city standardized in staging; may be null.
+
+      - name: seller_state
+        description: Seller state (UF) standardized in staging; may be null.
+
+      - name: load_date
+        description: Batch partition date used to identify the latest record.
+        tests: [not_null]
+
+      - name: ingestion_ts
+        description: Ingestion timestamp used as secondary ordering for latest selection.
+        tests: [not_null]
+
+      - name: source_file
+        description: Source file name used during ingestion.
+
+      - name: source_uri
+        description: Source file URI used during ingestion.

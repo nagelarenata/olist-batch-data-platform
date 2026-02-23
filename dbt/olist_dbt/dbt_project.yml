@@ -31,6 +31,14 @@ clean-targets:         # directories to be removed by `dbt clean`
 # files using the `{{ config(...) }}` macro.
 models:
   olist_dbt:
-    # Config indicated by + and applies to all files under models/example/
-    example:
+    +persist_docs:
+      relation: true
+      columns: true
+
+    staging:
       +materialized: view
+      +tags: ['staging']
+
+    intermediate:
+      +materialized: view
+      +tags: ['intermediate']

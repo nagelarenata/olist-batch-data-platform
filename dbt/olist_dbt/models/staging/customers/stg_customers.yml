@@ -1,0 +1,42 @@
+version: 2
+
+models:
+  - name: stg_customers
+    description: Staging model for customers with standardized location attributes and ingestion lineage.
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [customer_id, load_date]
+
+    columns:
+      - name: customer_id
+        description: Customer identifier (unique within each load_date batch).
+        tests: [not_null]
+
+      - name: customer_unique_id
+        description: Stable customer identifier representing the same person across multiple orders.
+        tests: [not_null]
+
+      - name: customer_zip_code_prefix
+        description: ZIP code prefix used for geographic analysis.
+
+      - name: customer_city
+        description: Customer city standardized (trimmed and lowercased).
+
+      - name: customer_state
+        description: Customer state (UF) standardized (trimmed and uppercased).
+
+      - name: load_date
+        description: Batch partition date used for ingestion lineage and incremental processing.
+        tests: [not_null]
+
+      - name: ingestion_ts
+        description: Ingestion timestamp for lineage and operational monitoring.
+        tests: [not_null]
+
+      - name: source_file
+        description: Source file name used during ingestion.
+
+      - name: source_uri
+        description: Source file URI used during ingestion.

@@ -1,0 +1,71 @@
+version: 2
+
+models:
+  - name: stg_sellers
+    description: Staging model for sellers with standardized geographic attributes and ingestion lineage.
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [seller_id, load_date]
+
+    columns:
+      - name: seller_id
+        description: Seller identifier (unique within each load_date batch).
+        tests: [not_null]
+
+      - name: seller_zip_code_prefix
+        description: ZIP code prefix used for geographic analysis.
+
+      - name: seller_city
+        description: Seller city standardized (trimmed, lowercased, empty strings converted to null).
+
+      - name: seller_state
+        description: Seller state (UF) standardized (trimmed, uppercased, empty strings converted to null).
+        tests:
+          - accepted_values:
+              arguments:
+                values:
+                  - AC
+                  - AL
+                  - AP
+                  - AM
+                  - BA
+                  - CE
+                  - DF
+                  - ES
+                  - GO
+                  - MA
+                  - MT
+                  - MS
+                  - MG
+                  - PA
+                  - PB
+                  - PR
+                  - PE
+                  - PI
+                  - RJ
+                  - RN
+                  - RS
+                  - RO
+                  - RR
+                  - SC
+                  - SP
+                  - SE
+                  - TO
+              config:
+                severity: warn
+
+      - name: load_date
+        description: Batch partition date used for ingestion lineage and incremental processing.
+        tests: [not_null]
+
+      - name: ingestion_ts
+        description: Ingestion timestamp for lineage and operational monitoring.
+        tests: [not_null]
+
+      - name: source_file
+        description: Source file name used during ingestion.
+
+      - name: source_uri
+        description: Source file URI used during ingestion.
