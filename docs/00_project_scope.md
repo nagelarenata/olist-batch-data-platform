@@ -16,7 +16,7 @@ The primary goal of this project is to demonstrate data engineering best practic
   - `gs://<bucket>/olist/raw/dt=YYYY-MM-DD/<table>.csv`
 - Data is first loaded into a transient BigQuery dataset (`olist_raw_tmp`)
 - Raw tables are populated in the `olist_raw` dataset
-- Raw layer is append-only and partitioned by `load_date`
+- Raw tables are partitioned by `load_date`. Each pipeline execution replaces the target partition.
 - Raw data is versioned by ingestion date (`dt=YYYY-MM-DD`)
 - No in-place updates to raw data
 
@@ -29,6 +29,11 @@ This project adopts an ingestion-date–based incremental strategy:
 - Incremental logic is driven by `load_date`, not by source update timestamps
 
 This approach prioritizes auditability, simplicity, and reproducibility over change data capture (CDC).
+
+## Idempotency
+
+Raw tables are partitioned by `load_date`.  
+Each pipeline execution replaces the target partition, ensuring safe reprocessing without duplicate records while preserving historical batches.
 
 ## Raw Ingestion Metadata
 
@@ -50,6 +55,25 @@ These fields enable batch traceability and allow safe reprocessing through parti
 - Data Warehouse: BigQuery (datasets: olist_raw_tmp, olist_raw, olist_analytics)
 - Runtime Environment: Compute Engine VM with Docker Compose
 
+## Analytics Layer Design
+
+The analytics layer follows a layered modeling approach using dbt:
+
+- **Staging:** source-aligned models with light standardization and metadata preservation
+- **Intermediate:** current-state views (latest records) based on ingestion ordering
+- **Marts (planned):** business-oriented dimensional models for reporting and analysis
+
+## Data Quality
+
+Data quality is enforced using dbt tests, including:
+
+- Primary key uniqueness
+- Not-null constraints
+- Referential integrity between entities
+- Domain validation for categorical fields
+
+Tests are executed as part of the `dbt build` process.
+
 ## Security and Authentication
 - No service account key files are used
 - Authentication is handled via Application Default Credentials (ADC)
@@ -70,4 +94,3 @@ The following items are intentionally excluded to maintain a clear and focused s
 - Slowly Changing Dimensions (SCD) Type 2
 - Multi-cloud deployments
 - Production-grade SLA enforcement
-
