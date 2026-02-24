@@ -89,9 +89,9 @@ Data quality is enforced using dbt tests:
 
 The ingestion pipeline runs sequentially to control memory usage and BigQuery costs.
 
-![Airflow DAG Graph](docs/images/airflow_dag_graph_raw_ingestion.png)
+![Airflow DAG Graph](docs/images/airflow/airflow_dag_graph_raw_ingestion.png)
 
-![Airflow DAG Run Success](docs/images/airflow_dag_run_success_olist_raw_ingestion.png)
+![Airflow DAG Run Success](docs/images/airflow/airflow_dag_run_success_olist_raw_ingestion.png)
 
 ---
 
@@ -103,7 +103,7 @@ Datasets created and managed by the pipeline:
 - `olist_raw_tmp`
 - `olist_analytics`
 
-![BigQuery Dataset Structure](docs/images/bigquery_datasets_layered_structure.png)
+![BigQuery Dataset Structure](docs/images/bigquery/bigquery_datasets_layered_structure.png)
 
 ---
 
@@ -111,7 +111,7 @@ Datasets created and managed by the pipeline:
 
 Raw tables are partitioned by ingestion date and include operational metadata.
 
-![Raw Schema with Metadata](docs/images/bigquery_raw_orders_schema_with_ingestion_metadata.png)
+![Raw Schema with Metadata](docs/images/bigquery/bigquery_raw_orders_schema_with_ingestion_metadata.png)
 
 ---
 
@@ -119,7 +119,7 @@ Raw tables are partitioned by ingestion date and include operational metadata.
 
 Example data loaded into the raw layer.
 
-![Orders Preview](docs/images/bigquery_orders_preview_with_metadata.png)
+![Orders Preview](docs/images/bigquery/bigquery_orders_preview_with_metadata.png)
 
 ---
 
@@ -127,7 +127,7 @@ Example data loaded into the raw layer.
 
 Tables are partitioned by `load_date` to support incremental processing.
 
-![Partition Details](docs/images/bigquery_raw_orders_partition_details_load_date.png)
+![Partition Details](docs/images/bigquery/bigquery_raw_orders_partition_details_load_date.png)
 
 ---
 
@@ -135,7 +135,7 @@ Tables are partitioned by `load_date` to support incremental processing.
 
 All ingestion jobs are executed by Airflow using the platform Service Account.
 
-![BigQuery Jobs](docs/images/bigquery_jobs_airflow_execution_sa.png)
+![BigQuery Jobs](docs/images/bigquery/bigquery_jobs_airflow_execution_sa.png)
 
 ---
 
@@ -143,7 +143,7 @@ All ingestion jobs are executed by Airflow using the platform Service Account.
 
 Staging and intermediate models were successfully built and validated with data quality tests.
 
-![dbt Build Success](docs/images/dbt_staging_intermediate_build_success.png)
+![dbt Build Success](docs/images/bigquery/dbt_staging_intermediate_build_success.png)
 
 ---
 
