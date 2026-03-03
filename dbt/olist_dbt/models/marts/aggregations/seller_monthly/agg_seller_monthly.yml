@@ -1,0 +1,134 @@
+version: 2
+
+models:
+  - name: agg_seller_monthly
+    description: >
+      Monthly seller-level performance model.
+      Grain: one row per seller_key per year_month.
+      Combines item-level commercial metrics and
+      order-level delivery KPIs without double counting.
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - seller_key
+              - year_month
+
+    columns:
+
+      - name: year_month
+        description: Year-month in YYYYMM format derived from order_purchase_date_key.
+        tests:
+          - not_null
+
+      - name: year
+        description: Calendar year derived from order_purchase_date_key.
+        tests:
+          - not_null
+
+      - name: month
+        description: Calendar month (1–12) derived from order_purchase_date_key.
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 1
+                max_value: 12
+
+      - name: seller_key
+        description: Surrogate key referencing dim_sellers.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_sellers')
+                field: seller_key
+
+      # -------------------------
+      # Volume Metrics
+      # -------------------------
+
+      - name: orders_cnt
+        description: Number of distinct orders containing items from the seller in the month.
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+
+      - name: items_cnt
+        description: Total quantity of items sold by the seller in the month.
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+
+      # -------------------------
+      # Commercial Metrics
+      # -------------------------
+
+      - name: items_price_sum
+        description: Sum of item prices (excluding freight).
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+
+      - name: freight_sum
+        description: Total freight value associated with the seller's items.
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+
+      - name: gmv_sum
+        description: Gross Merchandise Value (item_price + freight) for the seller in the month.
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+
+      - name: avg_order_value
+        description: Average GMV per distinct order for the seller in the month.
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+
+      - name: avg_item_value
+        description: Average GMV per item sold by the seller in the month.
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+
+      # -------------------------
+      # Delivery KPIs
+      # -------------------------
+
+      - name: delivered_orders_cnt
+        description: Number of delivered orders for the seller in the month.
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+
+      - name: on_time_orders_cnt
+        description: Number of orders delivered on or before estimated delivery date.
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+
+      - name: on_time_rate
+        description: Ratio of on-time delivered orders to total delivered orders.
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 1
