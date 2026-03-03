@@ -31,11 +31,20 @@ select
   -- flags / metrics
   (o.order_delivered_customer_dt is not null) as is_delivered,
 
-  date_diff(o.order_delivered_customer_dt, o.order_purchase_dt, day) as delivery_days,
-  date_diff(o.order_delivered_customer_dt, o.order_estimated_delivery_dt, day) as delivery_delay_days,
+  -- delivery delay:
+  -- estimated - delivered
+  -- Positive  = delivered BEFORE estimated (early)
+  -- Negative  = delivered AFTER estimated (late)
+  date_diff(
+    o.order_estimated_delivery_dt,
+    o.order_delivered_customer_dt,
+    day
+  ) as delivery_delay_days,
 
+  -- SLA flag
   case
-    when o.order_delivered_customer_dt is null or o.order_estimated_delivery_dt is null then null
+    when o.order_delivered_customer_dt is null
+         or o.order_estimated_delivery_dt is null then null
     when o.order_delivered_customer_dt <= o.order_estimated_delivery_dt then true
     else false
   end as is_delivered_on_time
