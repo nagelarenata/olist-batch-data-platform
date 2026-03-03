@@ -36,9 +36,6 @@ models:
         description: Product height in centimeters.
 
       - name: product_width_cm
-        description: Product height in centimeters.
-
-      - name: product_width_cm
         description: Product width in centimeters.
 
       - name: load_date
