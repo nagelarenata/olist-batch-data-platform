@@ -2,10 +2,13 @@ version: 2
 
 models:
   - name: agg_sales_daily
-    description: Daily sales KPIs aggregated by order purchase date.
+    description: >
+      Daily sales KPIs aggregated by order_purchase_date_key (day), combining
+      commercial metrics from fact_order_items and delivery/SLA KPIs from fact_orders.
 
     columns:
       - name: order_purchase_date_key
+        description: Surrogate date key (YYYYMMDD) for the purchase date.
         tests:
           - not_null
           - unique
@@ -14,8 +17,73 @@ models:
                 to: ref('dim_date')
                 field: date_key
 
+      - name: orders_cnt
+        description: Count of distinct orders (from fact_order_items) for the day.
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments: { min_value: 0 }
+
+      - name: items_cnt
+        description: Total quantity of items sold for the day.
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments: { min_value: 0 }
+
+      - name: items_price_sum
+        description: Sum of item prices for the day.
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments: { min_value: 0 }
+
+      - name: freight_sum
+        description: Sum of freight values for the day.
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments: { min_value: 0 }
+
       - name: gmv_sum
+        description: Gross merchandise value (items + freight) sum for the day.
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments: { min_value: 0 }
+
+      - name: avg_order_value
+        description: Average GMV per order for the day (gmv_sum / orders_cnt).
         tests:
           - dbt_utils.accepted_range:
-              arguments:
-                min_value: 0
+              arguments: { min_value: 0 }
+
+      - name: avg_item_value
+        description: Average GMV per item unit for the day (gmv_sum / items_cnt).
+        tests:
+          - dbt_utils.accepted_range:
+              arguments: { min_value: 0 }
+
+      - name: orders_in_fact_cnt
+        description: Sanity check - total orders count in fact_orders for the day.
+        tests:
+          - dbt_utils.accepted_range:
+              arguments: { min_value: 0 }
+
+      - name: delivered_orders_cnt
+        description: Count of delivered orders for the day (from fact_orders).
+        tests:
+          - dbt_utils.accepted_range:
+              arguments: { min_value: 0 }
+
+      - name: on_time_orders_cnt
+        description: Count of on-time delivered orders for the day (from fact_orders).
+        tests:
+          - dbt_utils.accepted_range:
+              arguments: { min_value: 0 }
+
+      - name: on_time_rate
+        description: On-time rate (on_time_orders_cnt / delivered_orders_cnt).
+        tests:
+          - dbt_utils.accepted_range:
+              arguments: { min_value: 0, max_value: 1 }
