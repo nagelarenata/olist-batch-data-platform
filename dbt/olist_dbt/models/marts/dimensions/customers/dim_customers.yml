@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: Customer dimension with surrogate key generated via dbt_utils.generate_surrogate_key.
+    columns:
+      - name: customer_key
+        tests: [not_null, unique]
+      - name: customer_id
+        tests: [not_null, unique]
+      - name: customer_unique_id
+        tests: [not_null]
