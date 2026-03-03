@@ -1,4 +1,5 @@
 -- Fails if order-level GMV in agg_orders does not match the sum of item GMV.
+-- GMV: sum(item_gmv) vs agg_orders.order_gmv
 
 with items as (
   select
