@@ -45,7 +45,12 @@ Each raw table is partitioned by `load_date` and includes ingestion metadata:
 ### 3. Transformations (dbt)
 - dbt reads from BigQuery raw tables and builds downstream models:
   - **Staging (Silver):** standardized and typed models (`stg_*`)
-  - **Marts (Gold):** analytics-oriented fact and dimension tables (`fact_*`, `dim_*`, `agg_*`)
+  - **Marts (Gold):**
+    - Kimball-style star schema
+    - Deterministic surrogate keys (INT64)
+    - Conformed dimensions
+    - Degenerate dimensions in fact tables
+    - Reconciliation consistency between aggregated and item-level facts
 - dbt runs incrementally using an ingestion-date-based strategy.
 - dbt documentation is generated to describe models, columns, and relationships.
 
