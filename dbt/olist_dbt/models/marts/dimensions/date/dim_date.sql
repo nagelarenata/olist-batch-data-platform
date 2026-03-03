@@ -4,7 +4,7 @@ with calendar as (
   -- range
   select
     d as date_day
-  from unnest(generate_date_array(date('2016-01-01'), date('2019-12-31'))) as d
+  from unnest(generate_date_array(date('2016-01-01'), date('2020-12-31'))) as d
 )
 
 select
