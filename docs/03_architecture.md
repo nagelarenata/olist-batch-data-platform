@@ -20,7 +20,7 @@ This document focuses on describing architectural intent and structure rather th
 - **Orchestration:** Apache Airflow running on a Compute Engine VM via Docker Compose.
 - **Warehouse:** BigQuery with separate datasets for raw ingestion (`olist_raw`) and analytics modeling (`olist_analytics`).
 - **Transformations & Modeling:** dbt used for staging and analytical marts.
-- **Consumption:** Looker Studio dashboards built on top of curated BigQuery tables.
+- **Consumption:** Looker Studio dashboards connecting to curated BigQuery mart tables (not yet implemented).
 
 ## Region and Data Residency
 All resources are deployed in **europe-west1 (Belgium)**.
@@ -45,14 +45,14 @@ Each raw table is partitioned by `load_date` and includes ingestion metadata:
 ### 3. Transformations (dbt)
 - dbt reads from BigQuery raw tables and builds downstream models:
   - **Staging (Silver):** standardized and typed models (`stg_*`)
+  - **Intermediate:** current-state views (`int_*__latest`) — latest record per business key, used as the clean input for Gold layer models
   - **Marts (Gold):**
     - Kimball-style star schema
-    - Deterministic surrogate keys (INT64)
+    - Deterministic surrogate keys via `dbt_utils.generate_surrogate_key()`
     - Conformed dimensions
     - Degenerate dimensions in fact tables
-    - Reconciliation consistency between aggregated and item-level facts
-- dbt runs incrementally using an ingestion-date-based strategy.
-- dbt documentation is generated to describe models, columns, and relationships.
+    - Cross-grain reconciliation tests validating metric consistency
+- Gold layer models use full-refresh table materializations. Incremental dbt materializations are not yet implemented.
 
 ### 4. Data Quality
 - dbt tests are used to validate basic constraints and relationships, such as:
@@ -62,7 +62,7 @@ Each raw table is partitioned by `load_date` and includes ingestion metadata:
 - Test failures are intended to block downstream steps in the orchestration flow.
 
 ### 5. Analytics Consumption
-- Looker Studio connects to curated BigQuery mart tables for reporting and KPI exploration.
+- Looker Studio will connect to curated BigQuery mart tables for reporting and KPI exploration (not yet implemented).
 
 
 ## Layering Strategy
@@ -77,6 +77,12 @@ Each raw table is partitioned by `load_date` and includes ingestion metadata:
 - Standardization and light cleaning
 - Type casting, naming conventions, and limited deduplication within ingestion windows
 
+### Intermediate
+- BigQuery `olist_analytics` (dbt intermediate views)
+- Current-state views (`int_*__latest`) selecting the latest record per business key
+- Ordered by `load_date` (primary) and `ingestion_ts` (tie-breaker)
+- Provides deduplicated entities as clean input for Gold layer joins
+
 ### Gold
 - BigQuery `olist_analytics` (dbt marts)
 - Dimensional and aggregated models intended for analytical consumption
@@ -87,10 +93,12 @@ Incremental processing is based on ingestion date rather than source update time
 
 - Raw ingestion is idempotent at the partition level
 - Each batch replaces its corresponding `load_date` partition if reprocessed
-- dbt models process only newly ingested partitions using logic equivalent to:
-  - `load_date > max(load_date)` from the target model
+- dbt staging and intermediate models are implemented as views and rebuilt fully on each run
+- Gold layer models are materialized as tables using full-refresh strategy
 
 This strategy is chosen for simplicity and traceability.
+
+**Note:** Incremental dbt materializations driven by `load_date` are a planned enhancement but not yet implemented.
 
 **Note:** Change Data Capture (CDC) and historical attribute tracking (e.g., SCD Type 2) are not implemented in this project.
 
@@ -177,6 +185,11 @@ The following components are already implemented and validated:
   - unique / unique combinations
   - accepted values
   - relationship integrity
+- Gold layer models (Kimball-style):
+  - Dimensions: `dim_customers`, `dim_products`, `dim_sellers`, `dim_date`
+  - Facts: `fact_orders`, `fact_order_items`
+  - Aggregations: `agg_orders`, `agg_sales_daily`, `agg_seller_monthly`
+- Cross-grain reconciliation tests implemented (singular dbt tests)
 - `dbt build` execution validated successfully
 
 ### Execution Flow
