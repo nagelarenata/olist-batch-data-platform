@@ -1,4 +1,10 @@
-{{ config(materialized='table') }}
+{{
+    config(
+        materialized='incremental',
+        unique_key='order_purchase_date_key',
+        incremental_strategy='merge',
+    )
+}}
 
 -- ==========================================================
 -- Model: agg_sales_daily
@@ -14,6 +20,11 @@
 -- Joining them first would duplicate order-level flags (e.g., is_delivered),
 -- inflating COUNTIF-based metrics. We aggregate each fact at the correct grain
 -- and join the daily results afterwards to avoid double counting.
+--
+-- Incremental strategy:
+-- On incremental runs, only days >= the latest already-processed date are
+-- recomputed. The most recent day is always reprocessed to capture late-arriving
+-- orders (e.g., status updates that arrive after the initial load).
 -- ==========================================================
 
 with items_daily as (
@@ -34,6 +45,12 @@ with items_daily as (
         safe_divide(sum(item_gmv), sum(item_qty)) as avg_item_value
 
     from {{ ref('fact_order_items') }}
+    {% if is_incremental() %}
+    where order_purchase_date_key >= (
+        select cast(format_date('%Y%m%d', date_sub(max(parse_date('%Y%m%d', cast(order_purchase_date_key as string))), interval 1 day)) as int64)
+        from {{ this }}
+    )
+    {% endif %}
     group by 1
 ),
 
@@ -50,6 +67,12 @@ orders_daily as (
         safe_divide(countif(is_delivered_on_time), countif(is_delivered)) as on_time_rate
 
     from {{ ref('fact_orders') }}
+    {% if is_incremental() %}
+    where order_purchase_date_key >= (
+        select cast(format_date('%Y%m%d', date_sub(max(parse_date('%Y%m%d', cast(order_purchase_date_key as string))), interval 1 day)) as int64)
+        from {{ this }}
+    )
+    {% endif %}
     group by 1
 )
 
