@@ -9,6 +9,7 @@ from airflow.providers.google.cloud.operators.bigquery import (
     BigQueryInsertJobOperator,
 )
 from airflow.operators.python import PythonOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.exceptions import AirflowFailException
 from airflow.providers.google.cloud.hooks.gcs import GCSHook
 
@@ -192,4 +193,10 @@ with DAG(
                 previous >> load_to_tmp
             previous = upsert_partition
 
-    check_gcs_batch >> ensure_raw_dataset >> ensure_tmp_dataset >> load_all_tables
+    trigger_dbt_build = TriggerDagRunOperator(
+        task_id="trigger_dbt_build",
+        trigger_dag_id="02_olist_dbt_build",
+        wait_for_completion=False,
+    )
+
+    check_gcs_batch >> ensure_raw_dataset >> ensure_tmp_dataset >> load_all_tables >> trigger_dbt_build
