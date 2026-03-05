@@ -9,20 +9,23 @@ The project demonstrates end-to-end data engineering practices, including:
 - Partition-aware incremental processing
 - Deterministic surrogate key generation
 - Dimensional modeling (Kimball-style star schema)
+- Cross-grain reconciliation testing
+- Source freshness monitoring
 - Operational metadata tracking
 - Cost control under cloud free-tier constraints
+
 ---
 
 ## Architecture Overview
 
 The platform is built on Google Cloud Platform and follows a modern batch analytics architecture:
 
-- **Cloud Provider:** GCP (EU region)
+- **Cloud Provider:** GCP (EU region — europe-west1)
 - **Storage:** Google Cloud Storage (raw landing zone)
-- **Orchestration:** Apache Airflow (Docker on Compute Engine)
+- **Orchestration:** Apache Airflow (Docker Compose on Compute Engine)
 - **Data Warehouse:** BigQuery
-- **Transformation:** dbt (staging, intermediate and analytical models implemented)
-- **Visualization:** Looker Studio 
+- **Transformation:** dbt (staging, intermediate, and analytical models)
+- **Visualization:** Looker Studio (planned)
 
 Data flows:
 
@@ -34,122 +37,62 @@ GCS → Airflow → BigQuery Raw → dbt (Staging/Silver → Intermediate → Ma
 
 The transformation layer follows a layered modeling approach:
 
-- **Staging (Silver):** Source-aligned models with data type casting, standardization and ingestion lineage.
-- **Intermediate:** Current-state models built using load_date and ingestion_ts to resolve latest records.
+- **Staging (Silver):** Source-aligned models with type casting, standardization, and ingestion lineage preservation.
+- **Intermediate:** Current-state views built using `load_date` and `ingestion_ts` to resolve the latest record per business key.
 - **Marts (Gold):** Business-ready dimensional models designed for analytics and BI consumption.
 
-### Model structure:
+### Model structure
 
+```
 models/
   staging/
   intermediate/
   marts/
     dimensions/
     facts/
-
-### All models include:
-- Data quality tests (not_null, unique, relationships)
-- Incremental-ready structure
-- Source lineage and operational metadata
+    aggregations/
+```
 
 ### Dimensional Modeling Strategy
 
-The analytical layer follows Kimball-style dimensional modeling principles:
+The Gold layer follows Kimball-style dimensional modeling principles:
 
-- Deterministic surrogate keys (INT64) generated via FARM_FINGERPRINT
+- Surrogate keys generated via `dbt_utils.generate_surrogate_key()`
 - Natural keys preserved for reconciliation and traceability
-- Degenerate dimensions (e.g., order_id) retained in fact tables
+- Degenerate dimensions (e.g., `order_id`) retained in fact tables
 - Conformed dimensions shared across multiple facts
-- Star schema structure designed for BI efficiency and analytical clarity
+- Star schema structure optimized for BI queries
 
-                dim_customers
-                       |
-dim_date ← fact_order_items → dim_products
-                       |
-                 dim_sellers
+```
+              dim_customers
+                    |
+dim_date ←─ fact_order_items ─→ dim_products
+                    |
+              dim_sellers
 
----
+dim_date ←─ fact_orders ─→ dim_customers
+```
 
-## Dimensional Model (Gold Layer)
+### Gold Layer Models
 
-The Gold layer implements a star schema designed for analytical consumption.
+**Dimensions:** `dim_customers`, `dim_products`, `dim_sellers`, `dim_date`
 
-### Fact Tables
+**Facts:**
+- `fact_order_items` — grain: one row per (order_id, order_item_id); item-level commercial metrics
+- `fact_orders` — grain: one row per order_id; delivery metrics and SLA indicators
 
-#### fact_order_items
-Grain: one row per (order_id, order_item_id)
-
-Contains:
-- Degenerate dimensions: order_id, order_item_id
-- Foreign keys: product_key, seller_key, customer_key
-- Date keys:
-  - order_purchase_date_key
-  - shipping_limit_date_key
-- Measures:
-  - item_qty (always 1)
-  - item_price
-  - item_freight
-  - item_gmv (price + freight)
-
-#### fact_orders
-Grain: one row per order_id
-
-Contains:
-- Degenerate dimension: order_id
-- Foreign key: customer_key
-- Date keys:
-  - order_purchase_date_key
-  - order_delivered_customer_date_key
-  - order_estimated_delivery_date_key
-  - order_approved_date_key
-- Metrics:
-  - order_status
-  - delivery_days
-  - delivery_delay_days
-  - is_delivered
-  - is_delivered_on_time
-
-### Dimensions
-
-- dim_date (date_key INT64 in YYYYMMDD format)
-- dim_products (product_key INT64, product_id preserved)
-- dim_sellers (seller_key INT64, seller_id preserved)
-- dim_customers (customer_key INT64, customer_id preserved, customer_unique_id as attribute)
-
-All surrogate keys are generated deterministically using FARM_FINGERPRINT with sign-bit masking for safe INT64 values.
-
-### Surrogate Key Strategy
-
-Surrogate keys are generated deterministically using:
-
-farm_fingerprint(concat(...)) & 0x7fffffffffffffff
-
-This ensures:
-- Deterministic rebuild behavior
-- INT64 non-negative values
-- No dependency on sequences
-- Idempotent dimensional modeling
+**Aggregations:**
+- `agg_orders` — order-level reconciliation summary
+- `agg_sales_daily` — daily KPIs; incremental model (merge on `order_purchase_date_key`)
+- `agg_seller_monthly` — monthly seller performance metrics
 
 ---
 
-## Key Features
+## Model Lineage
 
-- Batch ingestion from CSV files stored in GCS
-- Historical raw layer versioned by `load_date`
-- Idempotent partition loads (existing partitions are replaced during reprocessing)
-- BigQuery tables partitioned by `load_date`
-- Ingestion metadata added to all records:
-  - `load_date`
-  - `ingestion_ts`
-  - `source_file`
-  - `source_uri`
-- Reprocessing safety: each execution replaces the target `load_date` partition, ensuring idempotent behavior and preventing duplicate records
-- Sequential execution using Airflow pools to control resource usage
-- Cost-aware architecture designed for GCP Free Trial
-- Secure authentication using:
-  - Service Account attached to VM
-  - Application Default Credentials (ADC)
-  - IAP + OS Login for SSH access
+The diagram below shows the full dbt model dependency graph, as rendered by `dbt docs`.
+
+![dbt lineage graph](docs/images/dbt/dbt_lineage_graph.png)
 
 ---
 
@@ -161,11 +104,21 @@ Data quality is enforced using dbt tests:
 - Not-null constraints
 - Referential integrity between facts and dimensions
 - Accepted values and domain validation
-- The current implementation includes 70+ automated data tests executed during each dbt build.
+- **Cross-grain reconciliation tests** (singular dbt tests): validate that GMV, freight, and item quantity are consistent across `fact_order_items`, `fact_orders`, and `agg_orders` — preventing silent metric inflation from incorrect joins
+
+The current implementation includes 163 automated tests executed during each `dbt build`.
+
+**Source freshness monitoring** is configured via `dbt source freshness`: transactional tables warn after 25h and error after 49h. The pipeline fails fast if raw data is stale before any transformation runs.
 
 ---
 
 ## End-to-End Execution
+
+### Execution Flow
+
+```
+Airflow ingestion → dbt deps → dbt source freshness → dbt build (includes tests)
+```
 
 ### Airflow DAG Execution
 
@@ -181,9 +134,9 @@ The ingestion pipeline runs sequentially to control memory usage and BigQuery co
 
 Datasets created and managed by the pipeline:
 
-- `olist_raw`
-- `olist_raw_tmp`
-- `olist_analytics`
+- `olist_raw_tmp` — transient staging dataset used during ingestion
+- `olist_raw` — immutable raw layer, partitioned by `load_date`
+- `olist_analytics` — dbt-managed staging, intermediate, and Gold models
 
 ![BigQuery Dataset Structure](docs/images/bigquery/bigquery_datasets_layered_structure.png)
 
@@ -221,11 +174,26 @@ All ingestion jobs are executed by Airflow using the platform Service Account.
 
 ---
 
-### dbt Execution – Staging and Intermediate Layers
+### dbt Execution
 
-Staging and intermediate models were successfully built and validated with data quality tests.
+Full `dbt build` completed successfully: 19 models + 163 data tests, 0 errors, 0 warnings.
 
-![dbt Build Success](docs/images/bigquery/dbt_staging_intermediate_build_success.png)
+![dbt Build Success](docs/images/dbt/dbt_full_build_success.png)
+
+---
+
+## Key Features
+
+- Batch ingestion from CSV files stored in GCS
+- Historical raw layer versioned by `load_date`
+- Idempotent partition loads (existing partitions are replaced during reprocessing)
+- BigQuery tables partitioned by `load_date` with ingestion metadata on all records
+- Sequential Airflow execution using pools to control resource usage on a constrained VM
+- Incremental aggregation (`agg_sales_daily`) with merge strategy and late-arrival lookback
+- Cross-grain reconciliation tests enforcing analytical correctness across model grains
+- Source freshness monitoring with fail-fast pipeline behavior
+- Cost-aware architecture designed for GCP Free Trial
+- Secure authentication via Service Account ADC (no key files), IAP + OS Login for SSH
 
 ---
 
@@ -233,8 +201,8 @@ Staging and intermediate models were successfully built and validated with data 
 
 This project was developed under the GCP Free Trial and applies basic FinOps principles:
 
-- Project budget with alert thresholds
-- Lightweight Compute Engine configuration
+- Project budget with alert thresholds (5%, 20%, 50%)
+- Lightweight Compute Engine configuration (e2-medium)
 - VM stopped when not in use
 - Sequential pipeline execution to avoid cost spikes
 
@@ -244,63 +212,38 @@ This project was developed under the GCP Free Trial and applies basic FinOps pri
 
 - No service account keys (JSON)
 - Authentication via Application Default Credentials (ADC)
-- Dedicated runtime Service Account
+- Dedicated runtime Service Account with least-privilege IAM
 - Secure SSH via IAP + OS Login
-- IAM scoped using least-privilege principles
-
----
-
-## Reproducibility Baseline (v0)
-
-This repository has a validated baseline for the ingestion layer.
-
-Verified scope:
-- Airflow running on Docker Compose (webserver + scheduler + postgres)
-- One-shot ingestion DAG executed successfully
-- GCS → BigQuery load into `olist_raw` with ingestion metadata
-- Partition-based idempotency (`load_date` partition overwrite)
-
-If issues occur after this point, they are expected to be related to subsequent work (dbt models, tests, marts, dashboards, etc.).
-
-See docs/baseline-ingestion-v0.md for full reproducibility instructions.
+- Dataset-level IAM (no project-wide permissions)
 
 ---
 
 ## Project Status
 
-Current implementation:
+**Implemented and validated:**
 
-- Raw ingestion pipeline (Airflow)
+- Raw ingestion pipeline (Airflow + GCS → BigQuery)
 - Staging and intermediate dbt models
-- Latest-state resolution using ingestion metadata
+- Gold layer: dimensions, fact tables, and aggregations
+- Incremental materialization (`agg_sales_daily`)
 - 70+ automated data quality tests
-- Layered warehouse architecture (Raw → Silver → Gold)
+- Cross-grain reconciliation tests
+- Source freshness monitoring
 
-Next steps:
+**Planned:**
 
-- Build dimensional marts (facts and dimensions)
-- Implement incremental materializations
-- Publish Looker Studio dashboards
+- Looker Studio dashboards
+- Incremental materializations for remaining fact models
+- Published dbt docs (GitHub Pages)
 
 ---
 
 ## Documentation
 
-Detailed architecture and design decisions are available in:
-
-- `docs/00_project_scope.md`
-- `docs/01_cost_management.md`
-- `docs/02_authentication_and_security.md`
-- `docs/03_architecture.md`
-- `docs/baseline-ingestion-v0.md`
-- `docs/99_engineering_log.md`
-
----
-
-## Current Phase
-
-Raw ingestion layer completed and stabilized.
-
-Future development will focus on:
-- Analytical marts (Gold)
-- Looker Studio dashboards
+- [`docs/00_project_scope.md`](docs/00_project_scope.md)
+- [`docs/01_cost_management.md`](docs/01_cost_management.md)
+- [`docs/02_authentication_and_security.md`](docs/02_authentication_and_security.md)
+- [`docs/03_architecture.md`](docs/03_architecture.md)
+- [`docs/04_gold_contract.md`](docs/04_gold_contract.md)
+- [`docs/05_reconciliation_strategy.md`](docs/05_reconciliation_strategy.md)
+- [`docs/99_engineering_log.md`](docs/99_engineering_log.md)
