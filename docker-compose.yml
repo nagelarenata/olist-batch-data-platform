@@ -1,4 +1,5 @@
 x-airflow-common: &airflow-common
+  build: .
   image: ${AIRFLOW_IMAGE_NAME}
   env_file:
     - .env
