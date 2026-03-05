@@ -470,8 +470,34 @@ Staging and intermediate models remain as views (correct dbt convention). Increm
 
 ---
 
+## Phase 14 – Documentation and Maintenance
+
+### dbt Source Freshness Config Migration
+
+`freshness` was moved from a top-level property into the `config` block of `src_olist.yml`, following the dbt 1.11 convention. This affected three declarations:
+
+- Source-level default freshness thresholds (warn after 25h, error after 49h)
+- `geolocation` table: `freshness: null` moved to `config`
+- `product_category_name_translation` table: `freshness: null` moved to `config`
+
+This eliminates `PropertyMovedToConfigDeprecation` warnings during `dbt build` and `dbt source freshness`.
+
+### dbt Docs and Lineage Graph
+
+Generated dbt documentation and lineage graph. The lineage graph was added to the architecture documentation (`docs/03_architecture.md`) and the project README.
+
+### README Maintenance
+
+Updated README to reflect the current project state:
+- Corrected surrogate key documentation (uses `dbt_utils.generate_surrogate_key()`, not FARM_FINGERPRINT)
+- Updated test count to 163 data tests (19 models, 182 total executions)
+- Added cross-grain reconciliation tests and source freshness monitoring
+- Consolidated Project Status to reflect completed Gold layer
+
+---
+
 ## Next Planned Steps
 
-- Generate and publish dbt documentation (`dbt docs`)
 - Create analytical dashboards (Looker Studio or similar)
 - Extend incremental materializations to fact models
+- Publish dbt docs (GitHub Pages)
