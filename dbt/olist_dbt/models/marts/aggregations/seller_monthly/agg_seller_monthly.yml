@@ -10,6 +10,7 @@ models:
 
     tests:
       - dbt_utils.unique_combination_of_columns:
+          description: "Ensures each seller appears only once per year-month."
           arguments:
             combination_of_columns:
               - seller_key
@@ -20,18 +21,22 @@ models:
       - name: year_month
         description: Year-month in YYYYMM format derived from order_purchase_date_key.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures every row has a year-month identifier."
 
       - name: year
         description: Calendar year derived from order_purchase_date_key.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures every row has a year for time-based filtering."
 
       - name: month
         description: Calendar month (1–12) derived from order_purchase_date_key.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures every row has a month for time-based filtering."
           - dbt_utils.accepted_range:
+              description: "Validates that month is within the valid range of 1 to 12."
               arguments:
                 min_value: 1
                 max_value: 12
@@ -39,8 +44,10 @@ models:
       - name: seller_key
         description: Surrogate key referencing dim_sellers.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures every row is linked to a seller dimension record."
           - relationships:
+              description: "Validates referential integrity between the monthly aggregation and the seller dimension."
               arguments:
                 to: ref('dim_sellers')
                 field: seller_key
@@ -52,16 +59,20 @@ models:
       - name: orders_cnt
         description: Number of distinct orders containing items from the seller in the month.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures orders count is always populated."
           - dbt_utils.accepted_range:
+              description: "Validates that orders count is non-negative."
               arguments:
                 min_value: 0
 
       - name: items_cnt
         description: Total quantity of items sold by the seller in the month.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures items count is always populated."
           - dbt_utils.accepted_range:
+              description: "Validates that items count is non-negative."
               arguments:
                 min_value: 0
 
@@ -72,24 +83,30 @@ models:
       - name: items_price_sum
         description: Sum of item prices (excluding freight).
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures items price sum is always populated."
           - dbt_utils.accepted_range:
+              description: "Validates that items price sum is non-negative."
               arguments:
                 min_value: 0
 
       - name: freight_sum
         description: Total freight value associated with the seller's items.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures freight sum is always populated."
           - dbt_utils.accepted_range:
+              description: "Validates that freight sum is non-negative."
               arguments:
                 min_value: 0
 
       - name: gmv_sum
         description: Gross Merchandise Value (item_price + freight) for the seller in the month.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures GMV sum is always populated."
           - dbt_utils.accepted_range:
+              description: "Validates that GMV sum is non-negative."
               arguments:
                 min_value: 0
 
@@ -97,6 +114,7 @@ models:
         description: Average GMV per distinct order for the seller in the month.
         tests:
           - dbt_utils.accepted_range:
+              description: "Validates that average order value is non-negative."
               arguments:
                 min_value: 0
 
@@ -104,6 +122,7 @@ models:
         description: Average GMV per item sold by the seller in the month.
         tests:
           - dbt_utils.accepted_range:
+              description: "Validates that average item value is non-negative."
               arguments:
                 min_value: 0
 
@@ -115,6 +134,7 @@ models:
         description: Number of delivered orders for the seller in the month.
         tests:
           - dbt_utils.accepted_range:
+              description: "Validates that delivered orders count is non-negative."
               arguments:
                 min_value: 0
 
@@ -122,6 +142,7 @@ models:
         description: Number of orders delivered on or before estimated delivery date.
         tests:
           - dbt_utils.accepted_range:
+              description: "Validates that on-time orders count is non-negative."
               arguments:
                 min_value: 0
 
@@ -129,6 +150,7 @@ models:
         description: Ratio of on-time delivered orders to total delivered orders.
         tests:
           - dbt_utils.accepted_range:
+              description: "Validates that on-time rate is between 0 and 1 (proportion)."
               arguments:
                 min_value: 0
                 max_value: 1

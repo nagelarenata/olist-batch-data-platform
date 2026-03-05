@@ -6,13 +6,16 @@ models:
 
     tests:
       - dbt_utils.unique_combination_of_columns:
+          description: "Ensures each seller_id appears only once (latest state deduplication)."
           arguments:
             combination_of_columns: [seller_id]
 
     columns:
       - name: seller_id
         description: Seller identifier (current state).
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every seller record has an identifier."
 
       - name: seller_zip_code_prefix
         description: ZIP code prefix used for geographic analysis.
@@ -25,11 +28,15 @@ models:
 
       - name: load_date
         description: Batch partition date used to identify the latest record.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every row has a batch load date for lineage tracking."
 
       - name: ingestion_ts
         description: Ingestion timestamp used as secondary ordering for latest selection.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every row has an ingestion timestamp for traceability."
 
       - name: source_file
         description: Source file name used during ingestion.

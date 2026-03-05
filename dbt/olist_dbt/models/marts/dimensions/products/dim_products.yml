@@ -6,11 +6,19 @@ models:
     columns:
       - name: product_key
         description: Surrogate key generated from product_id via dbt_utils.generate_surrogate_key.
-        tests: [not_null, unique]
+        tests:
+          - not_null:
+              description: "Ensures every product row has a surrogate key for fact table joins."
+          - unique:
+              description: "Ensures the surrogate key is unique across all product records."
 
       - name: product_id
         description: Natural key identifying the product.
-        tests: [not_null, unique]
+        tests:
+          - not_null:
+              description: "Ensures every product record has a natural key."
+          - unique:
+              description: "Ensures the natural key is unique in the dimension (one row per product_id)."
 
       - name: product_category_name
         description: Product category name (lowercased in staging).
@@ -25,30 +33,35 @@ models:
         description: Number of product photos available.
         tests:
           - dbt_utils.accepted_range:
+              description: "Validates that photo quantity is non-negative."
               arguments: {min_value: 0}
 
       - name: product_weight_g
         description: Product weight in grams.
         tests:
           - dbt_utils.accepted_range:
+              description: "Validates that product weight is non-negative."
               arguments: {min_value: 0}
 
       - name: product_length_cm
         description: Product length in centimeters.
         tests:
           - dbt_utils.accepted_range:
+              description: "Validates that product length is non-negative."
               arguments: {min_value: 0}
 
       - name: product_height_cm
         description: Product height in centimeters.
         tests:
           - dbt_utils.accepted_range:
+              description: "Validates that product height is non-negative."
               arguments: {min_value: 0}
 
       - name: product_width_cm
         description: Product width in centimeters.
         tests:
           - dbt_utils.accepted_range:
+              description: "Validates that product width is non-negative."
               arguments: {min_value: 0}
 
       - name: load_date

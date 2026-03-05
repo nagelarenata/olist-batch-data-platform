@@ -6,15 +6,25 @@ models:
     columns:
       - name: customer_key
         description: Surrogate key generated from customer_id via dbt_utils.generate_surrogate_key.
-        tests: [not_null, unique]
+        tests:
+          - not_null:
+              description: "Ensures every customer row has a surrogate key for fact table joins."
+          - unique:
+              description: "Ensures the surrogate key is unique across all customer records."
 
       - name: customer_id
         description: Transaction-level customer identifier. A customer may have multiple customer_ids across orders.
-        tests: [not_null, unique]
+        tests:
+          - not_null:
+              description: "Ensures every customer record has a natural key."
+          - unique:
+              description: "Ensures the natural key is unique in the dimension (one row per customer_id)."
 
       - name: customer_unique_id
         description: Stable identifier representing the same real customer across multiple orders.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every customer has a stable identifier for cross-order tracking."
 
       - name: customer_zip_code_prefix
         description: 5-digit ZIP code prefix used for geographic analysis.
@@ -24,6 +34,40 @@ models:
 
       - name: customer_state
         description: Customer state (UF, trimmed and uppercased in staging).
+        tests:
+          - accepted_values:
+              description: "Validates that customer state is one of the 27 valid Brazilian UFs."
+              arguments:
+                values:
+                  - AC
+                  - AL
+                  - AP
+                  - AM
+                  - BA
+                  - CE
+                  - DF
+                  - ES
+                  - GO
+                  - MA
+                  - MT
+                  - MS
+                  - MG
+                  - PA
+                  - PB
+                  - PR
+                  - PE
+                  - PI
+                  - RJ
+                  - RN
+                  - RS
+                  - RO
+                  - RR
+                  - SC
+                  - SP
+                  - SE
+                  - TO
+              config:
+                severity: warn
 
       - name: load_date
         description: Batch partition date from which this record was selected as the latest state.

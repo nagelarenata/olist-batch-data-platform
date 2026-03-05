@@ -5,23 +5,30 @@ models:
     description: Fact table at order item grain (order_id, order_item_id) with additive measures.
     tests:
       - dbt_utils.unique_combination_of_columns:
+          description: "Ensures each order item appears only once in the fact table."
           arguments:
             combination_of_columns: [order_id, order_item_id]
 
     columns:
       - name: order_id
         description: Order identifier (degenerate dimension, preserved for drill-down and reconciliation).
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every item row is linked to an order."
 
       - name: order_item_id
         description: Sequential item number within the order (degenerate dimension).
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every item row has a sequence number within its order."
 
       - name: product_key
         description: Surrogate FK to dim_products, generated via dbt_utils.generate_surrogate_key.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures every item is linked to a product dimension record."
           - relationships:
+              description: "Validates referential integrity between order items and the product dimension."
               arguments:
                 to: ref('dim_products')
                 field: product_key
@@ -29,8 +36,10 @@ models:
       - name: seller_key
         description: Surrogate FK to dim_sellers, generated via dbt_utils.generate_surrogate_key.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures every item is linked to a seller dimension record."
           - relationships:
+              description: "Validates referential integrity between order items and the seller dimension."
               arguments:
                 to: ref('dim_sellers')
                 field: seller_key
@@ -38,8 +47,10 @@ models:
       - name: customer_key
         description: Surrogate FK to dim_customers, derived from the parent order's customer_id.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures every item is linked to a customer dimension record."
           - relationships:
+              description: "Validates referential integrity between order items and the customer dimension."
               arguments:
                 to: ref('dim_customers')
                 field: customer_key
@@ -47,8 +58,10 @@ models:
       - name: order_purchase_date_key
         description: Date key (YYYYMMDD) of the order purchase date, FK to dim_date.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures every item has a purchase date key for time-series analysis."
           - relationships:
+              description: "Validates referential integrity between purchase date and the date dimension."
               arguments:
                 to: ref('dim_date')
                 field: date_key
@@ -57,6 +70,7 @@ models:
         description: Date key (YYYYMMDD) of the item shipping deadline, FK to dim_date.
         tests:
           - relationships:
+              description: "Validates referential integrity between shipping limit date and the date dimension when present."
               arguments:
                 to: ref('dim_date')
                 field: date_key
@@ -64,8 +78,10 @@ models:
       - name: item_qty
         description: Item quantity. Always 1 — each row represents a single item unit.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures item quantity is always populated."
           - dbt_utils.accepted_range:
+              description: "Validates that item quantity is exactly 1 (each row = one item unit)."
               arguments:
                 min_value: 1
                 max_value: 1
@@ -74,6 +90,7 @@ models:
         description: Selling price of the item, excluding freight.
         tests:
           - dbt_utils.accepted_range:
+              description: "Validates that item price is non-negative."
               arguments:
                 min_value: 0
 
@@ -81,6 +98,7 @@ models:
         description: Freight cost charged for this item.
         tests:
           - dbt_utils.accepted_range:
+              description: "Validates that freight cost is non-negative."
               arguments:
                 min_value: 0
 

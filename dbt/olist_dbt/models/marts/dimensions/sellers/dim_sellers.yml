@@ -6,11 +6,19 @@ models:
     columns:
       - name: seller_key
         description: Surrogate key generated from seller_id via dbt_utils.generate_surrogate_key.
-        tests: [not_null, unique]
+        tests:
+          - not_null:
+              description: "Ensures every seller row has a surrogate key for fact table joins."
+          - unique:
+              description: "Ensures the surrogate key is unique across all seller records."
 
       - name: seller_id
         description: Natural key identifying the seller.
-        tests: [not_null, unique]
+        tests:
+          - not_null:
+              description: "Ensures every seller record has a natural key."
+          - unique:
+              description: "Ensures the natural key is unique in the dimension (one row per seller_id)."
 
       - name: seller_zip_code_prefix
         description: 5-digit ZIP code prefix used for geographic analysis.
@@ -20,6 +28,40 @@ models:
 
       - name: seller_state
         description: Seller state (UF, trimmed and uppercased in staging).
+        tests:
+          - accepted_values:
+              description: "Validates that seller state is one of the 27 valid Brazilian UFs."
+              arguments:
+                values:
+                  - AC
+                  - AL
+                  - AP
+                  - AM
+                  - BA
+                  - CE
+                  - DF
+                  - ES
+                  - GO
+                  - MA
+                  - MT
+                  - MS
+                  - MG
+                  - PA
+                  - PB
+                  - PR
+                  - PE
+                  - PI
+                  - RJ
+                  - RN
+                  - RS
+                  - RO
+                  - RR
+                  - SC
+                  - SP
+                  - SE
+                  - TO
+              config:
+                severity: warn
 
       - name: load_date
         description: Batch partition date from which this record was selected as the latest state.

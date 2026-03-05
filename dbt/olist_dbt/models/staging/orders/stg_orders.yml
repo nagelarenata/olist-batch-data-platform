@@ -6,22 +6,28 @@ models:
 
     tests:
       - dbt_utils.unique_combination_of_columns:
+          description: "Ensures each order appears only once per batch load date."
           arguments:
             combination_of_columns: [order_id, load_date]
 
     columns:
       - name: order_id
         description: Order identifier (unique within each load_date batch).
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every order record has an identifier."
 
       - name: customer_id
         description: Customer who placed the order.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every order is associated with a customer."
 
       - name: order_status
         description: Current status of the order.
         tests:
           - accepted_values:
+              description: "Validates that order status is one of the known lifecycle values."
               arguments:
                 values:
                   - created
@@ -35,11 +41,15 @@ models:
 
       - name: order_purchase_ts
         description: Order creation timestamp standardized in the staging layer.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every order has a purchase timestamp."
 
       - name: order_purchase_dt
         description: Order creation date derived from order_purchase_ts.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every order has a purchase date for partitioning and reporting."
 
       - name: order_approved_ts
         description: Timestamp when the order was approved.
@@ -55,11 +65,15 @@ models:
 
       - name: load_date
         description: Batch partition date used for ingestion lineage and incremental processing.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every row has a batch load date for lineage tracking."
 
       - name: ingestion_ts
         description: Ingestion timestamp for lineage and operational monitoring.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every row has an ingestion timestamp for traceability."
 
       - name: source_file
         description: Source file name used during ingestion.

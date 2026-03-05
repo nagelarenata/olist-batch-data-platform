@@ -10,13 +10,19 @@ models:
     columns:
       - name: order_id
         description: Order identifier (degenerate dimension).
-        tests: [not_null, unique]
+        tests:
+          - not_null:
+              description: "Ensures every row has an order identifier."
+          - unique:
+              description: "Ensures each order appears only once in the aggregation."
 
       - name: customer_key
         description: Surrogate FK to dim_customers.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures every order is linked to a customer dimension record."
           - relationships:
+              description: "Validates referential integrity between orders and the customer dimension."
               arguments:
                 to: ref('dim_customers')
                 field: customer_key
@@ -24,8 +30,10 @@ models:
       - name: order_purchase_date_key
         description: Date key (YYYYMMDD) of the order purchase date, FK to dim_date.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures every order has a purchase date key for time-series analysis."
           - relationships:
+              description: "Validates referential integrity between purchase date and the date dimension."
               arguments:
                 to: ref('dim_date')
                 field: date_key
@@ -41,9 +49,27 @@ models:
 
       - name: order_status
         description: Current status of the order.
+        tests:
+          - accepted_values:
+              description: "Validates that order status is one of the known lifecycle values."
+              arguments:
+                values:
+                  - created
+                  - approved
+                  - invoiced
+                  - processing
+                  - shipped
+                  - delivered
+                  - canceled
+                  - unavailable
 
       - name: is_delivered
         description: True if the order has a recorded delivery date.
+        tests:
+          - accepted_values:
+              description: "Validates that is_delivered is a boolean value."
+              arguments:
+                values: [true, false]
 
       - name: delivery_days
         description: >
@@ -51,6 +77,7 @@ models:
           Null when the order has not yet been delivered.
         tests:
           - dbt_utils.accepted_range:
+              description: "Validates that delivery days is non-negative when present."
               arguments: { min_value: 0 }
 
       - name: delivery_delay_days
@@ -63,6 +90,13 @@ models:
         description: >
           True if delivered on or before the estimated date.
           Null when either date is missing.
+        tests:
+          - accepted_values:
+              description: "Validates that is_delivered_on_time is a boolean value when not null."
+              arguments:
+                values: [true, false]
+              config:
+                where: "is_delivered_on_time is not null"
 
       - name: order_has_items
         description: >
@@ -73,6 +107,7 @@ models:
         description: Total number of items in the order. Coalesced to 0 for orders without items.
         tests:
           - dbt_utils.accepted_range:
+              description: "Validates that item count is non-negative."
               arguments: { min_value: 0 }
 
       - name: order_items_price
@@ -82,12 +117,14 @@ models:
         description: Sum of freight costs across all items in the order.
         tests:
           - dbt_utils.accepted_range:
+              description: "Validates that total freight cost is non-negative."
               arguments: { min_value: 0 }
 
       - name: order_gmv
         description: Total gross merchandise value of the order (sum of item_gmv = price + freight).
         tests:
           - dbt_utils.accepted_range:
+              description: "Validates that total GMV is non-negative."
               arguments: { min_value: 0 }
 
       - name: avg_gmv_per_item

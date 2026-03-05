@@ -6,13 +6,16 @@ models:
 
     tests:
       - dbt_utils.unique_combination_of_columns:
+          description: "Ensures each product_id appears only once (latest state deduplication)."
           arguments:
             combination_of_columns: [product_id]
 
     columns:
       - name: product_id
         description: Product identifier (current state).
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every product record has an identifier."
 
       - name: product_category_name
         description: Product category name standardized in staging.
@@ -25,26 +28,55 @@ models:
 
       - name: product_photos_qty
         description: Number of product photos available.
+        tests:
+          - dbt_utils.accepted_range:
+              description: "Validates that photo quantity is non-negative."
+              arguments:
+                min_value: 0
 
       - name: product_weight_g
         description: Product weight in grams.
+        tests:
+          - dbt_utils.accepted_range:
+              description: "Validates that product weight is non-negative."
+              arguments:
+                min_value: 0
 
       - name: product_length_cm
         description: Product length in centimeters.
+        tests:
+          - dbt_utils.accepted_range:
+              description: "Validates that product length is non-negative."
+              arguments:
+                min_value: 0
 
       - name: product_height_cm
         description: Product height in centimeters.
+        tests:
+          - dbt_utils.accepted_range:
+              description: "Validates that product height is non-negative."
+              arguments:
+                min_value: 0
 
       - name: product_width_cm
         description: Product width in centimeters.
+        tests:
+          - dbt_utils.accepted_range:
+              description: "Validates that product width is non-negative."
+              arguments:
+                min_value: 0
 
       - name: load_date
         description: Batch partition date used to determine the latest record.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every row has a batch load date for lineage tracking."
 
       - name: ingestion_ts
         description: Ingestion timestamp used as secondary ordering for latest selection.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every row has an ingestion timestamp for traceability."
 
       - name: source_file
         description: Source file name used during ingestion.

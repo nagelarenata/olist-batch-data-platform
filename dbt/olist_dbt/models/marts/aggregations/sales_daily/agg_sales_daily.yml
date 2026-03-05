@@ -10,9 +10,12 @@ models:
       - name: order_purchase_date_key
         description: Surrogate date key (YYYYMMDD) for the purchase date.
         tests:
-          - not_null
-          - unique
+          - not_null:
+              description: "Ensures every row has a date key for time-series analysis."
+          - unique:
+              description: "Ensures each day appears only once in the daily aggregation."
           - relationships:
+              description: "Validates referential integrity between the daily aggregation and the date dimension."
               arguments:
                 to: ref('dim_date')
                 field: date_key
@@ -20,70 +23,86 @@ models:
       - name: orders_cnt
         description: Count of distinct orders (from fact_order_items) for the day.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures orders count is always populated."
           - dbt_utils.accepted_range:
+              description: "Validates that orders count is non-negative."
               arguments: { min_value: 0 }
 
       - name: items_cnt
         description: Total quantity of items sold for the day.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures items count is always populated."
           - dbt_utils.accepted_range:
+              description: "Validates that items count is non-negative."
               arguments: { min_value: 0 }
 
       - name: items_price_sum
         description: Sum of item prices for the day.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures items price sum is always populated."
           - dbt_utils.accepted_range:
+              description: "Validates that items price sum is non-negative."
               arguments: { min_value: 0 }
 
       - name: freight_sum
         description: Sum of freight values for the day.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures freight sum is always populated."
           - dbt_utils.accepted_range:
+              description: "Validates that freight sum is non-negative."
               arguments: { min_value: 0 }
 
       - name: gmv_sum
         description: Gross merchandise value (items + freight) sum for the day.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures GMV sum is always populated."
           - dbt_utils.accepted_range:
+              description: "Validates that GMV sum is non-negative."
               arguments: { min_value: 0 }
 
       - name: avg_order_value
         description: Average GMV per order for the day (gmv_sum / orders_cnt).
         tests:
           - dbt_utils.accepted_range:
+              description: "Validates that average order value is non-negative."
               arguments: { min_value: 0 }
 
       - name: avg_item_value
         description: Average GMV per item unit for the day (gmv_sum / items_cnt).
         tests:
           - dbt_utils.accepted_range:
+              description: "Validates that average item value is non-negative."
               arguments: { min_value: 0 }
 
       - name: orders_in_fact_cnt
         description: Sanity check - total orders count in fact_orders for the day.
         tests:
           - dbt_utils.accepted_range:
+              description: "Validates that fact_orders count is non-negative."
               arguments: { min_value: 0 }
 
       - name: delivered_orders_cnt
         description: Count of delivered orders for the day (from fact_orders).
         tests:
           - dbt_utils.accepted_range:
+              description: "Validates that delivered orders count is non-negative."
               arguments: { min_value: 0 }
 
       - name: on_time_orders_cnt
         description: Count of on-time delivered orders for the day (from fact_orders).
         tests:
           - dbt_utils.accepted_range:
+              description: "Validates that on-time orders count is non-negative."
               arguments: { min_value: 0 }
 
       - name: on_time_rate
         description: On-time rate (on_time_orders_cnt / delivered_orders_cnt).
         tests:
           - dbt_utils.accepted_range:
+              description: "Validates that on-time rate is between 0 and 1 (proportion)."
               arguments: { min_value: 0, max_value: 1 }

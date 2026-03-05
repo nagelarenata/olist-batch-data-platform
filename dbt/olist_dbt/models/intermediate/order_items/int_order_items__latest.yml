@@ -6,6 +6,7 @@ models:
 
     tests:
       - dbt_utils.unique_combination_of_columns:
+          description: "Ensures each order item is unique per order and item sequence (latest state deduplication)."
           arguments:
             combination_of_columns: [order_id, order_item_id]
 
@@ -13,8 +14,10 @@ models:
       - name: order_id
         description: Order identifier.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures every item is associated with an order."
           - relationships:
+              description: "Validates referential integrity between order items and orders (warn to allow late-arriving data)."
               arguments:
                 to: ref('int_orders__latest')
                 field: order_id
@@ -23,13 +26,17 @@ models:
 
       - name: order_item_id
         description: Sequential item identifier within the order.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every item has a sequence number within its order."
 
       - name: product_id
         description: Product identifier.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures every item references a product."
           - relationships:
+              description: "Validates referential integrity between order items and products (warn to allow late-arriving data)."
               arguments:
                 to: ref('int_products__latest')
                 field: product_id
@@ -39,8 +46,10 @@ models:
       - name: seller_id
         description: Seller identifier.
         tests:
-          - not_null
+          - not_null:
+              description: "Ensures every item has an associated seller."
           - relationships:
+              description: "Validates referential integrity between order items and sellers (warn to allow late-arriving data)."
               arguments:
                 to: ref('int_sellers__latest')
                 field: seller_id
@@ -61,11 +70,15 @@ models:
 
       - name: load_date
         description: Batch partition date used to identify the latest record.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every row has a batch load date for lineage tracking."
 
       - name: ingestion_ts
         description: Ingestion timestamp used as secondary ordering for latest selection.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every row has an ingestion timestamp for traceability."
 
       - name: source_file
         description: Source file name used during ingestion.

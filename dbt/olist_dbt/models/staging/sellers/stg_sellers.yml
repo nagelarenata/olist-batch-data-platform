@@ -6,13 +6,16 @@ models:
 
     tests:
       - dbt_utils.unique_combination_of_columns:
+          description: "Ensures each seller appears only once per batch load date."
           arguments:
             combination_of_columns: [seller_id, load_date]
 
     columns:
       - name: seller_id
         description: Seller identifier (unique within each load_date batch).
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every seller record has an identifier."
 
       - name: seller_zip_code_prefix
         description: ZIP code prefix used for geographic analysis.
@@ -24,6 +27,7 @@ models:
         description: Seller state (UF) standardized (trimmed, uppercased, empty strings converted to null).
         tests:
           - accepted_values:
+              description: "Validates that seller state is one of the 27 valid Brazilian UFs."
               arguments:
                 values:
                   - AC
@@ -58,11 +62,15 @@ models:
 
       - name: load_date
         description: Batch partition date used for ingestion lineage and incremental processing.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every row has a batch load date for lineage tracking."
 
       - name: ingestion_ts
         description: Ingestion timestamp for lineage and operational monitoring.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every row has an ingestion timestamp for traceability."
 
       - name: source_file
         description: Source file name used during ingestion.

@@ -6,26 +6,43 @@ models:
 
     tests:
       - dbt_utils.unique_combination_of_columns:
+          description: "Ensures each date_key appears only once in the dimension."
           arguments:
             combination_of_columns: [date_key]
 
     columns:
       - name: date_key
         description: Surrogate key in YYYYMMDD format.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every date row has a surrogate key for fact table joins."
 
       - name: date_day
         description: The actual calendar date.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every row represents a valid calendar date."
 
       - name: year
         description: Calendar year.
 
       - name: quarter
         description: Calendar quarter (1-4).
+        tests:
+          - dbt_utils.accepted_range:
+              description: "Validates that quarter is within the valid range of 1 to 4."
+              arguments:
+                min_value: 1
+                max_value: 4
 
       - name: month
         description: Calendar month (1-12).
+        tests:
+          - dbt_utils.accepted_range:
+              description: "Validates that month is within the valid range of 1 to 12."
+              arguments:
+                min_value: 1
+                max_value: 12
 
       - name: month_name
         description: Month name.
@@ -38,9 +55,20 @@ models:
 
       - name: day_of_week
         description: Day of week (1=Sunday .. 7=Saturday).
+        tests:
+          - dbt_utils.accepted_range:
+              description: "Validates that day_of_week is within the valid range of 1 to 7."
+              arguments:
+                min_value: 1
+                max_value: 7
 
       - name: day_name
         description: Day name.
 
       - name: is_weekend
         description: True if Saturday/Sunday.
+        tests:
+          - accepted_values:
+              description: "Validates that is_weekend is a boolean value."
+              arguments:
+                values: [true, false]

@@ -6,25 +6,34 @@ models:
 
     tests:
       - dbt_utils.unique_combination_of_columns:
+          description: "Ensures each order item is unique per order, item sequence, and batch load date."
           arguments:
             combination_of_columns: [order_id, order_item_id, load_date]
 
     columns:
       - name: order_id
         description: Identifier of the order this item belongs to.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every item is associated with an order."
 
       - name: order_item_id
         description: Sequential item number within an order.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every item has a sequence number within its order."
 
       - name: product_id
         description: Product identifier for the item.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every item references a product."
 
       - name: seller_id
         description: Seller identifier responsible for fulfilling the item.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every item has an associated seller."
 
       - name: shipping_limit_ts
         description: Latest timestamp for the seller to ship the item.
@@ -40,11 +49,15 @@ models:
 
       - name: load_date
         description: Batch partition date used for ingestion lineage and incremental processing.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every row has a batch load date for lineage tracking."
 
       - name: ingestion_ts
         description: Ingestion timestamp for lineage and operational monitoring.
-        tests: [not_null]
+        tests:
+          - not_null:
+              description: "Ensures every row has an ingestion timestamp for traceability."
 
       - name: source_file
         description: Source file name used during ingestion.
