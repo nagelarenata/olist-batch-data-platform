@@ -28,3 +28,7 @@ models:
     intermediate:
       +materialized: view
       +tags: ['intermediate']
+
+    marts:
+      +materialized: table
+      +tags: ['marts']
