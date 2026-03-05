@@ -5,6 +5,30 @@ models:
     description: Seller dimension with surrogate key generated via dbt_utils.generate_surrogate_key.
     columns:
       - name: seller_key
+        description: Surrogate key generated from seller_id via dbt_utils.generate_surrogate_key.
         tests: [not_null, unique]
+
       - name: seller_id
+        description: Natural key identifying the seller.
         tests: [not_null, unique]
+
+      - name: seller_zip_code_prefix
+        description: 5-digit ZIP code prefix used for geographic analysis.
+
+      - name: seller_city
+        description: Seller city (trimmed and lowercased in staging).
+
+      - name: seller_state
+        description: Seller state (UF, trimmed and uppercased in staging).
+
+      - name: load_date
+        description: Batch partition date from which this record was selected as the latest state.
+
+      - name: ingestion_ts
+        description: Ingestion timestamp used as secondary ordering for latest record selection.
+
+      - name: source_file
+        description: Source file name from the ingestion batch.
+
+      - name: source_uri
+        description: Full GCS URI of the source file from the ingestion batch.
