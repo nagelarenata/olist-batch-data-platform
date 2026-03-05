@@ -25,7 +25,7 @@ This project adopts an ingestion-date–based incremental strategy:
 
 - Each batch is ingested independently
 - Raw tables retain all historical batches
-- Downstream transformations process only newly ingested data
+- Downstream transformations currently use full-refresh materializations; incremental processing is a planned enhancement
 - Incremental logic is driven by `load_date`, not by source update timestamps
 
 This approach prioritizes auditability, simplicity, and reproducibility over change data capture (CDC).
@@ -71,6 +71,7 @@ Data quality is enforced using dbt tests, including:
 - Not-null constraints
 - Referential integrity between entities
 - Domain validation for categorical fields
+- Cross-grain reconciliation tests (singular dbt tests validating metric consistency across Gold layer models)
 
 Tests are executed as part of the `dbt build` process.
 
