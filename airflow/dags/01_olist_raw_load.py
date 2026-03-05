@@ -199,4 +199,10 @@ with DAG(
         wait_for_completion=False,
     )
 
-    check_gcs_batch >> ensure_raw_dataset >> ensure_tmp_dataset >> load_all_tables >> trigger_dbt_build
+    (
+        check_gcs_batch
+        >> ensure_raw_dataset
+        >> ensure_tmp_dataset
+        >> load_all_tables
+        >> trigger_dbt_build
+    )

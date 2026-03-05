@@ -31,6 +31,7 @@ def dag_module():
 # DAG structure
 # =====================================================
 
+
 class TestDag01Structure:
     def test_dag_loads_without_errors(self, dagbag):
         assert DAG_ID not in dagbag.import_errors, dagbag.import_errors.get(DAG_ID)
@@ -77,6 +78,7 @@ class TestDag01Structure:
 # =====================================================
 # _check_gcs_batch_exists logic
 # =====================================================
+
 
 class TestCheckGcsBatchExists:
     def test_raises_when_bucket_is_empty(self, dag_module):

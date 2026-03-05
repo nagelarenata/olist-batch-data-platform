@@ -25,6 +25,7 @@ def dbt_build_task(dag):
 # DAG structure
 # =====================================================
 
+
 class TestDag02Structure:
     def test_dag_loads_without_errors(self, dagbag):
         assert DAG_ID not in dagbag.import_errors, dagbag.import_errors.get(DAG_ID)
@@ -54,6 +55,7 @@ class TestDag02Structure:
 # =====================================================
 # dbt_build task configuration
 # =====================================================
+
 
 class TestDbtBuildTask:
     def test_command_contains_dbt_build(self, dbt_build_task):
