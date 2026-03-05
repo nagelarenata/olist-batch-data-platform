@@ -1,0 +1,13 @@
+olist_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: olist-batch-data-platform
+      dataset: olist_analytics
+      location: EU
+      threads: 1
+      job_execution_timeout_seconds: 300
+      job_retries: 1
+      priority: interactive
