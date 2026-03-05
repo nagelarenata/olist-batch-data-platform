@@ -13,6 +13,8 @@ x-airflow-common: &airflow-common
     - ./airflow/logs:/opt/airflow/logs
     - ./airflow/plugins:/opt/airflow/plugins
     - ./dbt:/opt/dbt
+    - ./tests:/opt/airflow/tests
+    - ./pyproject.toml:/opt/airflow/pyproject.toml
   user: "${AIRFLOW_UID}:${AIRFLOW_GID}"
   depends_on:
     postgres:
