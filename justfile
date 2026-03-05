@@ -32,3 +32,14 @@ fmt:
 # Check formatting without applying changes
 fmt-check:
     docker compose exec airflow-scheduler black --check dags/ tests/
+
+# Generate dbt docs (catalog + manifest)
+docs-gen:
+    docker compose exec airflow-scheduler dbt docs generate \
+        --project-dir /opt/dbt/olist_dbt \
+        --profiles-dir /opt/dbt/olist_dbt
+
+# Serve dbt docs on http://localhost:18080
+docs-serve:
+    docker compose run --rm -p 18080:8080 --entrypoint bash airflow-scheduler \
+        -c "dbt docs serve --project-dir /opt/dbt/olist_dbt --profiles-dir /opt/dbt/olist_dbt --port 8080"
