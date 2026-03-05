@@ -25,7 +25,7 @@ This project adopts an ingestion-date–based incremental strategy:
 
 - Each batch is ingested independently
 - Raw tables retain all historical batches
-- Downstream transformations currently use full-refresh materializations; incremental processing is a planned enhancement
+- Most downstream transformations use full-refresh materializations; `agg_sales_daily` adopts an incremental materialization (merge on `order_purchase_date_key`) as the first step toward incremental processing
 - Incremental logic is driven by `load_date`, not by source update timestamps
 
 This approach prioritizes auditability, simplicity, and reproducibility over change data capture (CDC).
