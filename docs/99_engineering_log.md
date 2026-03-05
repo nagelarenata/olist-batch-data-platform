@@ -321,13 +321,122 @@ The project now supports:
 
 ---
 
+## Phase 10 – Dimensional Modeling (Gold Layer)
+
+### Dimensional Design Approach
+
+The analytics layer was implemented following a Kimball-style dimensional modeling approach.
+
+The goal of this layer is to expose stable, analytics-ready datasets optimized for BI tools and analytical queries.
+
+The following modeling principles were applied:
+
+- Conformed dimensions
+- Surrogate keys for dimensional joins
+- Degenerate dimensions for business identifiers
+- Clear grain definition for each fact table
+- Separation between transactional facts and aggregated marts
+
+### Dimensions Implemented
+
+- dim_customers
+- dim_products
+- dim_sellers
+- dim_date
+
+Design considerations:
+
+- Surrogate keys generated using deterministic hashing
+- Natural keys preserved for traceability
+- Dimensions structured to support star-schema joins
+
+### Fact Tables Implemented
+
+- fact_orders (1 row per order)
+- fact_order_items (1 row per order item)
+
+These tables provide the core analytical measures for the platform.
+
+Key metrics include:
+
+- order-level delivery metrics
+- item-level revenue metrics
+- freight and price measures
+- delivery SLA indicators
+
+### Notes
+
+Separating order-level and item-level facts avoids duplication of metrics and enables consistent aggregation across analytical use cases.
+
+---
+
+## Phase 11 – Analytical Aggregations
+
+To support BI workloads and reduce query complexity for downstream consumers, a set of aggregated models was implemented.
+
+### Aggregated Models
+
+- agg_orders
+- agg_sales_daily
+- agg_seller_monthly
+
+These models provide:
+
+- Order-level reconciliation and analytical KPIs (`agg_orders`)
+- Daily sales performance metrics combining commercial and delivery indicators (`agg_sales_daily`)
+- Monthly seller performance analysis combining commercial and delivery indicators (`agg_seller_monthly`)
+
+### Design Considerations
+
+Aggregations were implemented as separate models instead of embedding calculations in BI tools to ensure:
+
+- Consistent metric definitions
+- Reduced query cost
+- Simplified consumption by dashboards
+
+The models are materialized as tables to improve performance and avoid repeated computation during analytical queries.
+
+`agg_sales_daily` and `agg_seller_monthly` follow a two-step aggregation pattern: item-level commercial metrics are aggregated from `fact_order_items` and delivery KPIs are aggregated from `fact_orders` independently, then joined at the target grain. This prevents delivery metric inflation caused by joining order-level flags to item-level rows before aggregation.
+
+---
+
+## Phase 12 – Data Contracts and Reconciliation Strategy
+
+To ensure long-term stability and reproducibility of analytical datasets, explicit data contracts were introduced for the Gold layer.
+
+### Gold Data Contracts
+
+The Gold contract defines:
+
+- Table grain
+- Metric definitions
+- Allowed joins
+- Stability guarantees for downstream consumers
+
+This contract protects BI dashboards and analytical workloads from unintended schema changes.
+
+### Reconciliation Strategy
+
+A reconciliation strategy was implemented to validate metric consistency between different fact tables.
+
+Reconciliation tests verify:
+
+- Order-level GMV consistency between item and order aggregates
+- Freight totals between item and order aggregates
+- Item quantity consistency between item and order aggregates
+
+These checks help detect data duplication, aggregation errors, and modeling inconsistencies.
+
+### Notes
+
+Treating analytical tables as contracts helps align data engineering with product-oriented data platform practices.
+
+---
+
 ## Next Planned Steps
 
-- Implement dimensional and aggregated models (Gold layer)
+- Integrate dbt execution into the Airflow DAG
 - Generate and publish dbt documentation (`dbt docs`)
-- Integrate dbt execution into Airflow DAG
-- Create initial Looker Studio dashboards
-- Implement basic pipeline monitoring and alerting
-
-### Known Limitations:
-- Fixed ingestion date (non-parameterized)
+- Implement pipeline monitoring and alerting
+- Create analytical dashboards (Looker Studio or similar)
+- Introduce data freshness monitoring
