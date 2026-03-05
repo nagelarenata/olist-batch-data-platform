@@ -61,7 +61,7 @@ The analytics layer follows a layered modeling approach using dbt:
 
 - **Staging:** source-aligned models with light standardization and metadata preservation
 - **Intermediate:** current-state views (latest records) based on ingestion ordering
-- **Marts (planned):** business-oriented dimensional models for reporting and analysis
+- **Marts:** business-oriented dimensional models following Kimball-style dimensional modeling (dimensions, facts, and aggregations)
 
 ## Data Quality
 

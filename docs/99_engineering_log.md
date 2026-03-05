@@ -417,7 +417,7 @@ This contract protects BI dashboards and analytical workloads from unintended sc
 
 ### Reconciliation Strategy
 
-A reconciliation strategy was implemented to validate metric consistency between different fact tables.
+A reconciliation strategy was implemented to validate that aggregated metrics remain consistent across different model grains.
 
 Reconciliation tests verify:
 
