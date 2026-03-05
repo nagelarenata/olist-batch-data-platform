@@ -199,3 +199,15 @@ The following components are already implemented and validated:
 Current manual execution sequence:
 
 Airflow ingestion → dbt deps → dbt source freshness → dbt build (includes tests)
+
+## Model Lineage
+
+The diagram below shows the full dbt model dependency graph, as rendered by `dbt docs`.
+
+Nodes are organized left to right across four layers:
+- **Sources (green):** raw BigQuery tables in `olist_raw`, loaded by Airflow
+- **Staging (silver):** `stg_*` models — standardized, typed, source-aligned
+- **Intermediate:** `int_*__latest` views — deduplicated current-state entities
+- **Gold:** dimensional models (`dim_*`), fact tables (`fact_*`), aggregations (`agg_*`), and cross-grain reconciliation singular tests (`test_reconcile_*`)
+
+![dbt lineage graph](images/dbt/dbt_lineage_graph.png)
