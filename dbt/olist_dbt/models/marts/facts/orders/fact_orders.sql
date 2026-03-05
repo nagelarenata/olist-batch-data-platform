@@ -28,8 +28,15 @@ select
   -- degenerate attribute
   o.order_status,
 
-  -- flags / metrics
+  -- flags
   (o.order_delivered_customer_dt is not null) as is_delivered,
+
+  -- delivery lead time (purchase -> delivered)
+  date_diff(
+    o.order_delivered_customer_dt,
+    o.order_purchase_dt,
+    day
+  ) as delivery_days,
 
   -- delivery delay:
   -- estimated - delivered
@@ -44,7 +51,7 @@ select
   -- SLA flag
   case
     when o.order_delivered_customer_dt is null
-         or o.order_estimated_delivery_dt is null then null
+      or o.order_estimated_delivery_dt is null then null
     when o.order_delivered_customer_dt <= o.order_estimated_delivery_dt then true
     else false
   end as is_delivered_on_time

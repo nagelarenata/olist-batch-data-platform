@@ -48,3 +48,29 @@ models:
               arguments:
                 to: ref('dim_date')
                 field: date_key
+
+      - name: order_status
+        description: Current status of the order.
+
+      - name: is_delivered
+        description: True if the order has a recorded delivery date.
+
+      - name: delivery_days
+        description: >
+          Number of days between order purchase and customer delivery.
+          Null when the order has not yet been delivered.
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+
+      - name: delivery_delay_days
+        description: >
+          Difference in days between estimated and actual delivery date
+          (estimated - delivered). Positive = early, negative = late.
+          Null when either date is missing.
+
+      - name: is_delivered_on_time
+        description: >
+          True if delivered on or before the estimated date.
+          Null when either date is missing.
