@@ -10,12 +10,15 @@ models:
 
     columns:
       - name: order_id
+        description: Order identifier (degenerate dimension, preserved for drill-down and reconciliation).
         tests: [not_null]
 
       - name: order_item_id
+        description: Sequential item number within the order (degenerate dimension).
         tests: [not_null]
 
       - name: product_key
+        description: Surrogate FK to dim_products, generated via dbt_utils.generate_surrogate_key.
         tests:
           - not_null
           - relationships:
@@ -24,6 +27,7 @@ models:
                 field: product_key
 
       - name: seller_key
+        description: Surrogate FK to dim_sellers, generated via dbt_utils.generate_surrogate_key.
         tests:
           - not_null
           - relationships:
@@ -32,6 +36,7 @@ models:
                 field: seller_key
 
       - name: customer_key
+        description: Surrogate FK to dim_customers, derived from the parent order's customer_id.
         tests:
           - not_null
           - relationships:
@@ -40,6 +45,7 @@ models:
                 field: customer_key
 
       - name: order_purchase_date_key
+        description: Date key (YYYYMMDD) of the order purchase date, FK to dim_date.
         tests:
           - not_null
           - relationships:
@@ -48,6 +54,7 @@ models:
                 field: date_key
 
       - name: shipping_limit_date_key
+        description: Date key (YYYYMMDD) of the item shipping deadline, FK to dim_date.
         tests:
           - relationships:
               arguments:
@@ -55,6 +62,7 @@ models:
                 field: date_key
 
       - name: item_qty
+        description: Item quantity. Always 1 — each row represents a single item unit.
         tests:
           - not_null
           - dbt_utils.accepted_range:
@@ -63,14 +71,18 @@ models:
                 max_value: 1
 
       - name: item_price
+        description: Selling price of the item, excluding freight.
         tests:
           - dbt_utils.accepted_range:
               arguments:
                 min_value: 0
 
       - name: item_freight
+        description: Freight cost charged for this item.
         tests:
           - dbt_utils.accepted_range:
               arguments:
                 min_value: 0
 
+      - name: item_gmv
+        description: Gross merchandise value for this item (item_price + item_freight).
