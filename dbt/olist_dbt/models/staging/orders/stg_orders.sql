@@ -37,6 +37,17 @@ parsed as (
 )
 
 select
-  *,
-  date(order_purchase_ts) as order_purchase_dt
+  order_id,
+  customer_id,
+  order_status,
+  order_purchase_ts,
+  order_approved_ts,
+  order_delivered_carrier_ts,
+  order_delivered_customer_ts,
+  order_estimated_delivery_ts,
+  date(order_purchase_ts) as order_purchase_dt,
+  load_date,
+  ingestion_ts,
+  source_file,
+  source_uri
 from parsed
