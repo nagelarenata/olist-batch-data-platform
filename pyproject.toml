@@ -1,0 +1,12 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tests"]
+addopts = "-v"
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+
+[tool.coverage.run]
+source = ["dags"]
+omit = ["**/dbt_packages/**"]
