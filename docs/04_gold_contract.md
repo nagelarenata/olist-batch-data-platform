@@ -201,6 +201,8 @@ Validation rules:
 
 **Grain:** 1 row per order_purchase_date_key
 
+**Materialization:** incremental (merge on `order_purchase_date_key`)
+
 Purpose:
 
 - Daily business KPIs
@@ -211,6 +213,12 @@ Rules:
 - Item metrics aggregated from fact_order_items
 - Delivery metrics aggregated independently from fact_orders
 - No cross-grain joins allowed
+
+Incremental behavior:
+
+- On incremental runs, reprocesses days >= max already-processed date minus 1 day
+- The 1-day lookback ensures late-arriving orders (e.g., status updates) are captured
+- First run performs a full load; subsequent runs are additive via merge
 
 ---
 
@@ -258,12 +266,14 @@ All Gold models enforce:
 
 # Incremental Behavior
 
-Current implementation uses full-refresh materializations.
+Most Gold models use full-refresh table materializations.
 
-Future enhancements may include:
+`agg_sales_daily` is implemented as an incremental model (merge strategy, unique key `order_purchase_date_key`), reprocessing only new and the most recent day on each run.
+
+Planned enhancements:
 
 - Incremental fact models
-- Partition-based incremental rebuild
+- Partition-based incremental rebuild for remaining aggregations
 - Snapshot-based SCD Type 2 dimensions
 
 ---
