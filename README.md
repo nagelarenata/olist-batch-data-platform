@@ -112,6 +112,24 @@ The current implementation includes 163 automated tests executed during each `db
 
 ---
 
+## Local Development
+
+This project uses [just](https://github.com/casey/just) as a command runner. Run `just` to list all available commands.
+
+| Command | Description |
+|---|---|
+| `just up` | Start the stack (builds image if needed) |
+| `just down` | Stop the stack |
+| `just logs` | Follow container logs |
+| `just test` | Run tests inside the scheduler container |
+| `just cov` | Run tests with coverage report |
+| `just fmt` | Format code with black |
+| `just fmt-check` | Check formatting without applying changes |
+| `just docs-gen` | Generate dbt docs (catalog + manifest) |
+| `just docs-serve` | Serve dbt docs on http://localhost:18080 |
+
+---
+
 ## End-to-End Execution
 
 ### Execution Flow
