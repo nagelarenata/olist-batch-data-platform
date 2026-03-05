@@ -100,7 +100,7 @@ with DAG(
         dataset_id=RAW_DATASET,
         location=BQ_LOCATION,
         gcp_conn_id=GCP_CONN_ID,
-        exists_ok=True,
+        if_exists="ignore",
         pool=BQ_POOL,
     )
 
@@ -110,7 +110,7 @@ with DAG(
         dataset_id=TMP_DATASET,
         location=BQ_LOCATION,
         gcp_conn_id=GCP_CONN_ID,
-        exists_ok=True,
+        if_exists="ignore",
         pool=BQ_POOL,
     )
 
