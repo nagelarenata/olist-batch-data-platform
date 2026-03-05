@@ -2,13 +2,18 @@ version: 2
 
 models:
   - name: agg_orders
-    description: Order-level aggregation combining fact_orders (status/SLA) and summed item measures from fact_order_items.
+    description: >
+      Order-level aggregation combining fact_orders (status/SLA) and summed item measures
+      from fact_order_items. Serves as the reconciliation layer between item and order facts,
+      and as a business-ready order-level KPI table for BI consumption.
 
     columns:
       - name: order_id
+        description: Order identifier (degenerate dimension).
         tests: [not_null, unique]
 
       - name: customer_key
+        description: Surrogate FK to dim_customers.
         tests:
           - not_null
           - relationships:
@@ -17,12 +22,28 @@ models:
                 field: customer_key
 
       - name: order_purchase_date_key
+        description: Date key (YYYYMMDD) of the order purchase date, FK to dim_date.
         tests:
           - not_null
           - relationships:
               arguments:
                 to: ref('dim_date')
                 field: date_key
+
+      - name: order_approved_date_key
+        description: Date key (YYYYMMDD) of the order approval date. Null if not yet approved.
+
+      - name: order_delivered_customer_date_key
+        description: Date key (YYYYMMDD) of the actual delivery date. Null if not yet delivered.
+
+      - name: order_estimated_delivery_date_key
+        description: Date key (YYYYMMDD) of the estimated delivery date.
+
+      - name: order_status
+        description: Current status of the order.
+
+      - name: is_delivered
+        description: True if the order has a recorded delivery date.
 
       - name: delivery_days
         description: >
@@ -32,17 +53,42 @@ models:
           - dbt_utils.accepted_range:
               arguments: { min_value: 0 }
 
-      - name: order_gmv
-        tests:
-          - dbt_utils.accepted_range:
-              arguments: { min_value: 0 }
+      - name: delivery_delay_days
+        description: >
+          Difference in days between estimated and actual delivery date
+          (estimated - delivered). Positive = early, negative = late.
+          Null when either date is missing.
 
-      - name: order_freight
-        tests:
-          - dbt_utils.accepted_range:
-              arguments: { min_value: 0 }
+      - name: is_delivered_on_time
+        description: >
+          True if delivered on or before the estimated date.
+          Null when either date is missing.
+
+      - name: order_has_items
+        description: >
+          True if the order has at least one associated item in fact_order_items.
+          Used as a data quality flag to surface orders without item records.
 
       - name: order_items_qty
+        description: Total number of items in the order. Coalesced to 0 for orders without items.
         tests:
           - dbt_utils.accepted_range:
               arguments: { min_value: 0 }
+
+      - name: order_items_price
+        description: Sum of item prices across all items in the order, excluding freight.
+
+      - name: order_freight
+        description: Sum of freight costs across all items in the order.
+        tests:
+          - dbt_utils.accepted_range:
+              arguments: { min_value: 0 }
+
+      - name: order_gmv
+        description: Total gross merchandise value of the order (sum of item_gmv = price + freight).
+        tests:
+          - dbt_utils.accepted_range:
+              arguments: { min_value: 0 }
+
+      - name: avg_gmv_per_item
+        description: Average GMV per item within the order. Null when order_items_qty is zero.
