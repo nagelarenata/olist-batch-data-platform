@@ -433,10 +433,45 @@ Treating analytical tables as contracts helps align data engineering with produc
 
 ---
 
+## Phase 13 – Source Freshness Monitoring and Incremental Aggregation
+
+### Source Freshness Monitoring
+
+Source freshness thresholds were added to the dbt source definition (`src_olist.yml`):
+
+- `loaded_at_field: ingestion_ts` was already configured; freshness thresholds were added on top
+- Transactional tables: warn after 25h, error after 49h
+- Reference tables (`geolocation`, `product_category_name_translation`): `freshness: null` — static by nature, freshness check not applicable
+
+The DAG `02_olist_dbt_build` was updated to run `dbt source freshness` as an explicit step between `dbt deps` and `dbt build`. This enforces a fail-fast pattern: if raw data is stale, the pipeline stops before running any transformation.
+
+The execution sequence is now:
+
+`dbt deps → dbt source freshness → dbt build (includes tests)`
+
+### Incremental Materialization on agg_sales_daily
+
+`agg_sales_daily` was converted from a full-refresh table to an incremental model:
+
+- Strategy: merge on `order_purchase_date_key`
+- On incremental runs, only days >= max already-processed date minus 1 day are reprocessed
+- The 1-day lookback captures late-arriving orders (e.g., status updates that arrive after the initial load)
+- First run performs a full load; subsequent runs are additive
+
+This model was chosen as the first incremental candidate because its grain is a daily time series — new data naturally appends by day, making the incremental pattern semantically correct.
+
+Staging and intermediate models remain as views (correct dbt convention). Incremental materializations for fact models and remaining aggregations are a planned enhancement.
+
+### Notes
+
+- Applying incremental logic at the aggregation layer rather than staging follows dbt conventions
+- The freshness thresholds (25h warn / 49h error) are designed for a daily batch cadence, providing a buffer for pipeline delays without masking real outages
+- Documenting the rationale for `freshness: null` on reference tables avoids future confusion
+
+---
+
 ## Next Planned Steps
 
-- Integrate dbt execution into the Airflow DAG
 - Generate and publish dbt documentation (`dbt docs`)
-- Implement pipeline monitoring and alerting
 - Create analytical dashboards (Looker Studio or similar)
-- Introduce data freshness monitoring
+- Extend incremental materializations to fact models
