@@ -31,11 +31,28 @@ with DAG(
     max_active_tasks=1,
 ) as dag:
 
+    dbt_deps = BashOperator(
+        task_id="dbt_deps",
+        bash_command=(
+            f"dbt deps --project-dir {DBT_PROJECT_DIR} --profiles-dir {DBT_PROFILES_DIR}"
+        ),
+        pool=BQ_POOL,
+    )
+
+    dbt_source_freshness = BashOperator(
+        task_id="dbt_source_freshness",
+        bash_command=(
+            f"dbt source freshness --project-dir {DBT_PROJECT_DIR} --profiles-dir {DBT_PROFILES_DIR}"
+        ),
+        pool=BQ_POOL,
+    )
+
     dbt_build = BashOperator(
         task_id="dbt_build",
         bash_command=(
-            f"dbt deps --project-dir {DBT_PROJECT_DIR} --profiles-dir {DBT_PROFILES_DIR} && "
             f"dbt build --project-dir {DBT_PROJECT_DIR} --profiles-dir {DBT_PROFILES_DIR}"
         ),
         pool=BQ_POOL,
     )
+
+    dbt_deps >> dbt_source_freshness >> dbt_build
