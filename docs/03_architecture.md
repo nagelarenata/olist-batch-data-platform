@@ -52,13 +52,14 @@ Each raw table is partitioned by `load_date` and includes ingestion metadata:
     - Conformed dimensions
     - Degenerate dimensions in fact tables
     - Cross-grain reconciliation tests validating metric consistency
-- Gold layer models use full-refresh table materializations. Incremental dbt materializations are not yet implemented.
+- Gold layer models are primarily materialized as tables using full-refresh strategy. `agg_sales_daily` is implemented as an incremental model (merge strategy), reprocessing only days >= the latest already-processed date with a 1-day lookback to capture late-arriving orders.
 
 ### 4. Data Quality
 - dbt tests are used to validate basic constraints and relationships, such as:
   - uniqueness
   - not-null constraints
   - referential integrity
+- Source freshness is monitored via `dbt source freshness` (warn after 25h, error after 49h; reference tables exempt)
 - Test failures are intended to block downstream steps in the orchestration flow.
 
 ### 5. Analytics Consumption
@@ -94,11 +95,12 @@ Incremental processing is based on ingestion date rather than source update time
 - Raw ingestion is idempotent at the partition level
 - Each batch replaces its corresponding `load_date` partition if reprocessed
 - dbt staging and intermediate models are implemented as views and rebuilt fully on each run
-- Gold layer models are materialized as tables using full-refresh strategy
+- Gold layer models are primarily materialized as tables using full-refresh strategy
+- `agg_sales_daily` uses an incremental materialization (merge on `order_purchase_date_key`), reprocessing only new and the most recent day to capture late-arriving orders
 
 This strategy is chosen for simplicity and traceability.
 
-**Note:** Incremental dbt materializations driven by `load_date` are a planned enhancement but not yet implemented.
+**Note:** Incremental materializations for fact models and remaining aggregations are a planned enhancement.
 
 **Note:** Change Data Capture (CDC) and historical attribute tracking (e.g., SCD Type 2) are not implemented in this project.
 
@@ -185,14 +187,15 @@ The following components are already implemented and validated:
   - unique / unique combinations
   - accepted values
   - relationship integrity
+- Source freshness monitoring configured (`dbt source freshness`)
 - Gold layer models (Kimball-style):
   - Dimensions: `dim_customers`, `dim_products`, `dim_sellers`, `dim_date`
   - Facts: `fact_orders`, `fact_order_items`
-  - Aggregations: `agg_orders`, `agg_sales_daily`, `agg_seller_monthly`
+  - Aggregations: `agg_orders`, `agg_sales_daily` (incremental), `agg_seller_monthly`
 - Cross-grain reconciliation tests implemented (singular dbt tests)
 - `dbt build` execution validated successfully
 
 ### Execution Flow
 Current manual execution sequence:
 
-Airflow ingestion → dbt build → dbt tests
+Airflow ingestion → dbt deps → dbt source freshness → dbt build (includes tests)
