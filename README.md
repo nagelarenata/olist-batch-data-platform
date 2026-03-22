@@ -120,13 +120,17 @@ This project uses [just](https://github.com/casey/just) as a command runner. Run
 |---|---|
 | `just up` | Start the stack (builds image if needed) |
 | `just down` | Stop the stack |
+| `just restart` | Restart the stack |
+| `just nuke` | Full reset — removes volumes and orphans (**wipes Airflow metadata**) |
 | `just logs` | Follow container logs |
 | `just test` | Run tests inside the scheduler container |
 | `just cov` | Run tests with coverage report |
 | `just fmt` | Format code with black |
 | `just fmt-check` | Check formatting without applying changes |
 | `just docs-gen` | Generate dbt docs (catalog + manifest) |
-| `just docs-serve` | Serve dbt docs on http://localhost:18080 |
+| `just docs-up` | Start dbt docs server on http://localhost:8081 |
+| `just docs-down` | Stop dbt docs server |
+| `just docs-logs` | Follow dbt docs server logs |
 
 ---
 
@@ -244,7 +248,7 @@ This project was developed under the GCP Free Trial and applies basic FinOps pri
 - Staging and intermediate dbt models
 - Gold layer: dimensions, fact tables, and aggregations
 - Incremental materialization (`agg_sales_daily`)
-- 70+ automated data quality tests
+- 163 automated data quality tests
 - Cross-grain reconciliation tests
 - Source freshness monitoring
 
