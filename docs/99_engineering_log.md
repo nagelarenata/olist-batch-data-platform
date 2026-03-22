@@ -490,7 +490,7 @@ Generated dbt documentation and lineage graph. The lineage graph was added to th
 
 Updated README to reflect the current project state:
 - Corrected surrogate key documentation (uses `dbt_utils.generate_surrogate_key()`, not FARM_FINGERPRINT)
-- Updated test count to 163 data tests (19 models, 182 total executions)
+- Updated test count to 178 data tests (19 models)
 - Added cross-grain reconciliation tests and source freshness monitoring
 - Consolidated Project Status to reflect completed Gold layer
 
