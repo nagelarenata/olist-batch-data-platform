@@ -152,6 +152,12 @@ The ingestion pipeline runs sequentially to control memory usage and BigQuery co
 
 ![Airflow DAG Run Success](docs/images/airflow/airflow_dag_run_success_olist_raw_ingestion.png)
 
+**DAG 2 — dbt Build**
+
+![Airflow DAG 2 dbt Build](docs/images/airflow/airflow_dag_02_olist_dbt_build.png)
+
+![Airflow DAG 2 Run Success](docs/images/airflow/airflow_dag_run_success_02_olist_dbt_build.png)
+
 ---
 
 ### BigQuery Layered Structure
