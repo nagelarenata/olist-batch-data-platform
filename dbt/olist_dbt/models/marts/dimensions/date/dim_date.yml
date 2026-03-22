@@ -68,7 +68,4 @@ models:
       - name: is_weekend
         description: True if Saturday/Sunday.
         tests:
-          - accepted_values:
-              description: "Validates that is_weekend is a boolean value."
-              arguments:
-                values: [true, false]
+          - not_null
