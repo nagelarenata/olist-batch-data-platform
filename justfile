@@ -13,6 +13,15 @@ up:
 down:
     docker compose down
 
+# Restart stack (down + up)
+restart:
+    docker compose down
+    docker compose up --build -d
+
+# Full reset (removes volumes + orphans) - DANGER: wipes postgres metadata
+nuke:
+    docker compose down -v --remove-orphans
+
 # Show logs (follow)
 logs:
     docker compose logs -f
@@ -33,13 +42,20 @@ fmt:
 fmt-check:
     docker compose exec airflow-scheduler black --check dags/ tests/
 
-# Generate dbt docs (catalog + manifest)
+# Generate dbt docs (catalog + manifest) using the running scheduler container
 docs-gen:
     docker compose exec airflow-scheduler dbt docs generate \
         --project-dir /opt/dbt/olist_dbt \
         --profiles-dir /opt/dbt/olist_dbt
 
-# Serve dbt docs on http://localhost:18080
-docs-serve:
-    docker compose run --rm -p 18080:8080 --entrypoint bash airflow-scheduler \
-        -c "dbt docs serve --project-dir /opt/dbt/olist_dbt --profiles-dir /opt/dbt/olist_dbt --port 8080"
+# Start dbt docs server on http://localhost:8081 (generates + serves)
+docs-up:
+    docker compose --profile docs up -d dbt-docs
+
+# Stop dbt docs server
+docs-down:
+    docker compose --profile docs down dbt-docs
+
+# Show dbt docs server logs (follow)
+docs-logs:
+    docker compose --profile docs logs -f dbt-docs
