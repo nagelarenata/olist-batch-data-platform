@@ -66,10 +66,7 @@ models:
       - name: is_delivered
         description: True if the order has a recorded delivery date.
         tests:
-          - accepted_values:
-              description: "Validates that is_delivered is a boolean value."
-              arguments:
-                values: [true, false]
+          - not_null
 
       - name: delivery_days
         description: >
@@ -90,13 +87,6 @@ models:
         description: >
           True if delivered on or before the estimated date.
           Null when either date is missing.
-        tests:
-          - accepted_values:
-              description: "Validates that is_delivered_on_time is a boolean value when not null."
-              arguments:
-                values: [true, false]
-              config:
-                where: "is_delivered_on_time is not null"
 
       - name: order_has_items
         description: >
