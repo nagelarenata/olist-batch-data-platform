@@ -1,5 +1,7 @@
 # Olist Batch Data Platform (GCP | Airflow | dbt | BigQuery)
 
+![CI](https://github.com/nagelarenata/olist-batch-data-platform/actions/workflows/ci.yml/badge.svg)
+
 A production-like batch data platform that simulates a real-world e-commerce analytics environment using Apache Airflow, BigQuery, and Google Cloud Platform.
 
 The project demonstrates end-to-end data engineering practices, including:
@@ -106,7 +108,7 @@ Data quality is enforced using dbt tests:
 - Accepted values and domain validation
 - **Cross-grain reconciliation tests** (singular dbt tests): validate that GMV, freight, and item quantity are consistent across `fact_order_items`, `fact_orders`, and `agg_orders` — preventing silent metric inflation from incorrect joins
 
-The current implementation includes 163 automated tests executed during each `dbt build`.
+The current implementation includes 178 automated tests executed during each `dbt build`.
 
 **Source freshness monitoring** is configured via `dbt source freshness`: transactional tables warn after 25h and error after 49h. The pipeline fails fast if raw data is stale before any transformation runs.
 
@@ -198,7 +200,7 @@ All ingestion jobs are executed by Airflow using the platform Service Account.
 
 ### dbt Execution
 
-Full `dbt build` completed successfully: 19 models + 163 data tests, 0 errors, 0 warnings.
+Full `dbt build` completed successfully: 19 models + 178 data tests, 0 errors, 0 warnings.
 
 ![dbt Build Success](docs/images/dbt/dbt_full_build_success.png)
 
@@ -248,15 +250,29 @@ This project was developed under the GCP Free Trial and applies basic FinOps pri
 - Staging and intermediate dbt models
 - Gold layer: dimensions, fact tables, and aggregations
 - Incremental materialization (`agg_sales_daily`)
-- 163 automated data quality tests
+- 178 automated data quality tests
 - Cross-grain reconciliation tests
 - Source freshness monitoring
+
+- GitHub Actions CI pipeline (formatting check + DAG unit tests on every push)
 
 **Planned:**
 
 - Looker Studio dashboards
 - Incremental materializations for remaining fact models
 - Published dbt docs (GitHub Pages)
+
+---
+
+## CI/CD
+
+Every push and pull request to `main` triggers a GitHub Actions pipeline that:
+
+1. Builds the custom Airflow Docker image
+2. Checks code formatting with `black`
+3. Runs DAG unit tests with `pytest`
+
+The pipeline uses the same Docker image as local development to ensure environment parity.
 
 ---
 
