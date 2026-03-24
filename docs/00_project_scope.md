@@ -87,6 +87,14 @@ Tests are executed as part of the `dbt build` process.
 - Infrastructure components are intentionally lightweight
 - Compute resources are stopped when not in use
 
+## Documentation
+
+dbt model documentation — including lineage graph, column definitions, and test coverage — is published via GitHub Pages:
+
+- **URL:** https://nagelarenata.github.io/olist-batch-data-platform/
+- **Contents:** source definitions, staging/intermediate/mart models, and all 178 tests
+- **Deployment:** automated via GitHub Actions on every push to `main` that updates `dbt-docs/`
+
 ## Out of Scope
 The following items are intentionally excluded to maintain a clear and focused scope:
 
