@@ -46,10 +46,19 @@ class TestDag02Structure:
         assert set(dag.tags) == {"olist", "dbt", "gold", "analytics"}
 
     def test_task_count(self, dag):
-        assert len(dag.tasks) == 1
+        assert len(dag.tasks) == 3
 
-    def test_dbt_build_task_exists(self, dag):
+    def test_required_task_ids_exist(self, dag):
+        assert "dbt_deps" in dag.task_ids
+        assert "dbt_source_freshness" in dag.task_ids
         assert "dbt_build" in dag.task_ids
+
+    def test_task_order(self, dag):
+        deps_task = dag.get_task("dbt_deps")
+        freshness_task = dag.get_task("dbt_source_freshness")
+        build_task = dag.get_task("dbt_build")
+        assert freshness_task in deps_task.downstream_list
+        assert build_task in freshness_task.downstream_list
 
 
 # =====================================================
@@ -60,9 +69,6 @@ class TestDag02Structure:
 class TestDbtBuildTask:
     def test_command_contains_dbt_build(self, dbt_build_task):
         assert "dbt build" in dbt_build_task.bash_command
-
-    def test_command_contains_dbt_deps(self, dbt_build_task):
-        assert "dbt deps" in dbt_build_task.bash_command
 
     def test_command_contains_project_dir(self, dbt_build_task):
         assert "--project-dir" in dbt_build_task.bash_command
