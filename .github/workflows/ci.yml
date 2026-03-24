@@ -28,15 +28,17 @@ jobs:
       - name: Check formatting (black)
         run: |
           docker run --rm \
+            --entrypoint black \
             -v ${{ github.workspace }}/airflow/dags:/opt/airflow/dags \
             -v ${{ github.workspace }}/tests:/opt/airflow/tests \
             -w /opt/airflow \
             olist-airflow:ci \
-            black --check dags/ tests/
+            --check dags/ tests/
 
       - name: Run tests (pytest)
         run: |
           docker run --rm \
+            --entrypoint pytest \
             -v ${{ github.workspace }}/airflow/dags:/opt/airflow/dags \
             -v ${{ github.workspace }}/tests:/opt/airflow/tests \
             -v ${{ github.workspace }}/pyproject.toml:/opt/airflow/pyproject.toml \
@@ -44,5 +46,4 @@ jobs:
             -e AIRFLOW__CORE__EXECUTOR=SequentialExecutor \
             -e AIRFLOW__CORE__LOAD_EXAMPLES=false \
             -w /opt/airflow \
-            olist-airflow:ci \
-            pytest
+            olist-airflow:ci
