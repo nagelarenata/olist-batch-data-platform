@@ -1,6 +1,7 @@
 # Olist Batch Data Platform (GCP | Airflow | dbt | BigQuery)
 
 ![CI](https://github.com/nagelarenata/olist-batch-data-platform/actions/workflows/ci.yml/badge.svg)
+[![dbt Docs](https://img.shields.io/badge/dbt-docs-orange)](https://nagelarenata.github.io/olist-batch-data-platform/)
 
 A production-like batch data platform that simulates a real-world e-commerce analytics environment using Apache Airflow, BigQuery, and Google Cloud Platform.
 
@@ -15,6 +16,14 @@ The project demonstrates end-to-end data engineering practices, including:
 - Source freshness monitoring
 - Operational metadata tracking
 - Cost control under cloud free-tier constraints
+
+---
+
+## dbt Documentation
+
+The full data lineage, model descriptions, column definitions, and test coverage are published via GitHub Pages:
+
+**[https://nagelarenata.github.io/olist-batch-data-platform/](https://nagelarenata.github.io/olist-batch-data-platform/)**
 
 ---
 
