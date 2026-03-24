@@ -88,16 +88,19 @@ services:
     working_dir: /opt/dbt/olist_dbt
     ports:
       - "8081:8081"
-    entrypoint: ["bash", "-lc"]
-    command: >
-      dbt docs generate
-      --project-dir /opt/dbt/olist_dbt
-      --profiles-dir /opt/dbt/olist_dbt
-      && dbt docs serve
-      --project-dir /opt/dbt/olist_dbt
-      --profiles-dir /opt/dbt/olist_dbt
-      --host 0.0.0.0
-      --port 8081
+    entrypoint: []
+    command:
+      - bash
+      - -c
+      - >-
+        /home/airflow/.local/bin/dbt docs generate
+        --project-dir /opt/dbt/olist_dbt
+        --profiles-dir /opt/dbt/olist_dbt
+        && /home/airflow/.local/bin/dbt docs serve
+        --project-dir /opt/dbt/olist_dbt
+        --profiles-dir /opt/dbt/olist_dbt
+        --host 0.0.0.0
+        --port 8081
     profiles:
       - docs
     user: "${AIRFLOW_UID}:${AIRFLOW_GID}"
