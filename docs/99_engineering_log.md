@@ -496,8 +496,18 @@ Updated README to reflect the current project state:
 
 ---
 
+## Phase 15 – dbt Docs Published (GitHub Pages)
+
+dbt documentation was published as a static site via GitHub Pages.
+
+- dbt artifacts (`index.html`, `manifest.json`, `catalog.json`) committed to `dbt-docs/`
+- GitHub Actions workflow created (`.github/workflows/dbt-docs.yml`) to deploy on every push to `main`
+- Documentation available at: https://nagelarenata.github.io/olist-batch-data-platform/
+- Badge added to README linking to the published docs
+
+---
+
 ## Next Planned Steps
 
 - Create analytical dashboards (Looker Studio or similar)
 - Extend incremental materializations to fact models
-- Publish dbt docs (GitHub Pages)
