@@ -13,7 +13,7 @@ def dagbag():
 
 @pytest.fixture(scope="module")
 def dag(dagbag):
-    return dagbag.get_dag(DAG_ID)
+    return dagbag.dags.get(DAG_ID)
 
 
 @pytest.fixture(scope="module")
